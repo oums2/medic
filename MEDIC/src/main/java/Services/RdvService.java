@@ -1,0 +1,53 @@
+package Services;
+
+import Entities.Creneau;
+import Entities.Medecin;
+import Entities.Patient;
+import Repositories.CreneauRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+
+@Service
+public class RdvService {
+
+    @Autowired private CreneauRepository creneauRepo;
+
+    @Transactional
+    public Creneau prendreRdv(Patient patient, Medecin medecin, String jour, String heure) {
+        Creneau creneau = creneauRepo
+                .findByMedecinAndJourAndHeureAndEstDispoTrue(medecin, jour, heure)
+                .orElseThrow(() -> new RuntimeException("Créneau indisponible : " + jour + " " + heure));
+        creneau.setEstDispo(false);
+        creneau.setPatient(patient);
+        return creneauRepo.save(creneau);
+    }
+
+    @Transactional
+    public void annulerRdv(Patient patient, Medecin medecin, String jour, String heure) {
+        List<Creneau> rdvPatient = creneauRepo.findByPatient(patient);
+        rdvPatient.stream()
+                .filter(c -> c.getMedecin().equals(medecin)
+                        && c.getJour().equals(jour)
+                        && c.getHeure().equals(heure))
+                .findFirst()
+                .ifPresentOrElse(c -> {
+                    c.setEstDispo(true);
+                    c.setPatient(null);
+                    creneauRepo.save(c);
+                }, () -> { throw new RuntimeException("Rendez-vous introuvable."); });
+    }
+
+    public List<Creneau> getDisposMedecin(Medecin medecin, String jour) {
+        return creneauRepo.findByMedecinAndJourAndEstDispoTrue(medecin, jour);
+    }
+
+    public List<Creneau> getRdvPatient(Patient patient) {
+        return creneauRepo.findByPatient(patient);
+    }
+
+    public List<Creneau> getPlanningMedecin(Medecin medecin) {
+        return creneauRepo.findByMedecinAndEstDispoFalse(medecin);
+    }
+}

@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "MedicApplication",
+            "request": "launch",
+            "mainClass": "medic.MedicApplication",
+            "projectName": "medic"
+        },
+        {
+            "type": "java",
+            "name": "MedicApplication",
+            "request": "launch",
+            "mainClass": "MedicApplication",
+            "projectName": "medic"
+        },
+        {
+            "type": "java",
+            "name": "Accueil",
+            "request": "launch",
+            "mainClass": "src.main.java.Accueil",
+            "projectName": "MEDIC_72ea43fd"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "src.main.java.Main",
+            "projectName": "MEDIC_72ea43fd"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        }
+    ]
+}
