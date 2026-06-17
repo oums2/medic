@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC — Connexion</title>
+</head>
+<body>
+    <h1>Connexion</h1>
+
+    <form id="form-connexion">
+
+        <label>Email :</label><br>
+        <input type="email" id="email" required><br><br>
+
+        <label>Mot de passe :</label><br>
+        <input type="password" id="motDePasse" required><br><br>
+
+        <button type="submit">Se connecter</button>
+    </form>
+
+    <p id="message"></p>
+
+    <p><a href="/inscription.html">Pas encore inscrit ?</a></p>
+
+    <script>
+        document.getElementById('form-connexion').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const motDePasse = document.getElementById('motDePasse').value;
+            const msg = document.getElementById('message');
+
+            try {
+                const response = await fetch('/connexion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, motDePasse })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    msg.textContent = `Bienvenue ${data.prenom} ${data.nom} !`;
+                } else {
+                    msg.textContent = data.message || 'Email ou mot de passe incorrect.';
+                }
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -2,17 +2,22 @@ package Controllers;
 
 import Entities.Utilisateur;
 import Services.ConnexionService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 
-@RestController
+@RestController // cette classe est un controller web
 public class ConnexionController {
 
-    @Autowired private ConnexionService connexionService;
+    private final ConnexionService connexionService;
 
-    @PostMapping("/connexion")
-    public Utilisateur connexion(@RequestBody Map<String, String> body) {
+    ConnexionController(ConnexionService connexionService){
+        this.connexionService = connexionService;
+    }
+
+    @PostMapping("/connexion") // Utilisation de la fonction avec POST
+    public Utilisateur connexion(@RequestBody Map<String, String> body){
         return connexionService.seConnecter(body.get("email"), body.get("motDePasse"));
     }
 }

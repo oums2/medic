@@ -1,7 +1,10 @@
+E:\projet\MEDIC\src\main\java\Controllers\AdminController.java
 E:\projet\MEDIC\src\main\java\Controllers\ConnexionController.java
+E:\projet\MEDIC\src\main\java\Controllers\GlobalExceptionHandler.java
 E:\projet\MEDIC\src\main\java\Controllers\MedecinController.java
 E:\projet\MEDIC\src\main\java\Controllers\PatientController.java
 E:\projet\MEDIC\src\main\java\Controllers\RdvController.java
+E:\projet\MEDIC\src\main\java\Controllers\SetupController.java
 E:\projet\MEDIC\src\main\java\Entities\Creneau.java
 E:\projet\MEDIC\src\main\java\Entities\DossierPatient.java
 E:\projet\MEDIC\src\main\java\Entities\Medecin.java
@@ -17,3 +20,4 @@ E:\projet\MEDIC\src\main\java\Services\ConnexionService.java
 E:\projet\MEDIC\src\main\java\Services\DossierService.java
 E:\projet\MEDIC\src\main\java\Services\InscriptionService.java
 E:\projet\MEDIC\src\main\java\Services\RdvService.java
+E:\projet\MEDIC\src\main\java\Utils\Affichage.java

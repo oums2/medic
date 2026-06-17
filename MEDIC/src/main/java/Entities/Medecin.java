@@ -2,50 +2,37 @@ package Entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
 import java.util.List;
 
 @Entity
-@Table(name = "medecins")
+@Table(name = "medecins") // modification dans la table medecins
 public class Medecin extends Utilisateur {
 
     private String specialite;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "medecin", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore //ignore pour éviter les erreurs
+    @OneToMany(mappedBy = "medecin", cascade = CascadeType.ALL, fetch = FetchType.LAZY) // un medecin pour plusieurs créneaux
     private List<Creneau> creneaux;
 
-    public Medecin() {}
+    public Medecin(){}
 
-    public Medecin(String nom, String prenom, String email, String specialite, String motDePasse) {
+    public Medecin(String nom, String prenom, String email, String specialite, String motDePasse){
         super(nom, prenom, email, motDePasse);
         this.specialite = specialite;
     }
 
-    public void affichePlanning() {
-        System.out.println("Planning de Dr." + this.getNom() + " " + this.getPrenom());
-        boolean aucunRdv = true;
-        if (creneaux != null) {
-            for (Creneau c : creneaux) {
-                if (!c.isEstDispo()) {
-                    System.out.println("  " + c.getJour() + " à " + c.getHeure()
-                            + " avec " + c.getPatient().getNom() + " " + c.getPatient().getPrenom());
-                    aucunRdv = false;
-                }
-            }
-        }
-        if (aucunRdv) {
-            System.out.println("  Aucun RDV prévu.");
-        }
-        System.out.println();
+    public String getSpecialite(){ 
+        return specialite;
     }
-
-    public void afficherDossierPatient(Patient p) {
-        p.getDossier().afficheDossier();
+    public void setSpecialite(String specialite){ 
+        this.specialite = specialite; 
     }
-
-    public String getSpecialite() { return specialite; }
-    public void setSpecialite(String specialite) { this.specialite = specialite; }
-
-    public List<Creneau> getCreneaux() { return creneaux; }
-    public void setCreneaux(List<Creneau> creneaux) { this.creneaux = creneaux; }
+    
+    public List<Creneau> getCreneaux(){ 
+        return creneaux; 
+    }
+    public void setCreneaux(List<Creneau> creneaux){ 
+        this.creneaux = creneaux; 
+    }
 }
