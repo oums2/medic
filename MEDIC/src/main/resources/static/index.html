@@ -40,7 +40,10 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    msg.textContent = `Bienvenue ${data.prenom} ${data.nom} !`;
+                    // Sauvegarde les infos de l'utilisateur connecté
+                    localStorage.setItem('utilisateur', JSON.stringify(data));
+                    // Redirige vers la page patient
+                    window.location.href = '/patient.html';
                 } else {
                     msg.textContent = data.message || 'Email ou mot de passe incorrect.';
                 }

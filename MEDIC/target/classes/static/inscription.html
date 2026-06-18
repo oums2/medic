@@ -59,7 +59,6 @@
     <!-- affiche si correct ou erreur -->
     <p id="message"></p>
 
-    
 
     <p><a href="/">Déjà inscrit ? Se connecter</a></p>
 
@@ -77,6 +76,7 @@
         async function inscrire(url, body) {
             const msg = document.getElementById('message');
             try {
+
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
