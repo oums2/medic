@@ -59,6 +59,7 @@
     <!-- affiche si correct ou erreur -->
     <p id="message"></p>
 
+    <!--  -->
 
     <p><a href="/">Déjà inscrit ? Se connecter</a></p>
 
@@ -86,9 +87,10 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    msg.textContent = 'Bienvenue ! ' 
                     // renvoie vers la page patient - a modifier vers la page d'accueil et changer si medecin ou patient
-                    localStorage.setItem('utilisateur', JSON.stringify(data));
-                    window.location.href = '/patient.html';
+                    // localStorage.setItem('utilisateur', JSON.stringify(data));
+                    // window.location.href = '/patient.html';
                 } else {
                     msg.textContent = data.message || 'Une erreur est survenue.';
                 }
