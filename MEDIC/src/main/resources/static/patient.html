@@ -20,7 +20,7 @@
     <script>
         // Récupère les infos sauvegardées lors de la connexion
         const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
-        
+
         // Si pas connecté, redirige vers la page de connexion
         if (!utilisateur) {
             window.location.href = '/';
