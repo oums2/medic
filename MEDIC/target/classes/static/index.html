@@ -41,8 +41,8 @@
 
                 if (response.ok) {
                     // Sauvegarde les infos de l'utilisateur connecté
+                    // a modifier vers la page d'accueil et changer si medecin ou patient
                     localStorage.setItem('utilisateur', JSON.stringify(data));
-                    // Redirige vers la page patient
                     window.location.href = '/patient.html';
                 } else {
                     msg.textContent = data.message || 'Email ou mot de passe incorrect.';
