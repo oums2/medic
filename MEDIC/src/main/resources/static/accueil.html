@@ -68,15 +68,20 @@
             }
 
             try {
-                // Recherche d'abord par spécialité
-                let response = await fetch(`/medecins/recherche?specialite=${encodeURIComponent(valeur)}`);
-                let resultats = await response.json();
+                // Lance les trois recherches en parallèle (nom, prénom, spécialité)
+                const [resNom, resPrenom, resSpecialite] = await Promise.all([
+                    fetch(`/medecins/recherche?nom=${encodeURIComponent(valeur)}`).then(r => r.json()),
+                    fetch(`/medecins/recherche?prenom=${encodeURIComponent(valeur)}`).then(r => r.json()),
+                    fetch(`/medecins/recherche?specialite=${encodeURIComponent(valeur)}`).then(r => r.json())
+                ]);
 
-                // Si aucun résultat par spécialité, cherche par nom
-                if (resultats.length === 0) {
-                    response = await fetch(`/medecins/recherche?nom=${encodeURIComponent(valeur)}`);
-                    resultats = await response.json();
-                }
+                // Fusionne les résultats en évitant les doublons (par id)
+                const vus = new Set();
+                const resultats = [...resNom, ...resPrenom, ...resSpecialite].filter(m => {
+                    if (vus.has(m.id)) return false;
+                    vus.add(m.id);
+                    return true;
+                });
 
                 afficherResultats(resultats);
             } catch (err) {
