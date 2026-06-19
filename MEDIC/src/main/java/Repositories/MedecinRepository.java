@@ -3,13 +3,12 @@ package Repositories;
 import Entities.Medecin;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-//import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-//@Repository
 public interface MedecinRepository extends JpaRepository<Medecin, Integer>{
-    List<Medecin> findBySpecialiteContainingIgnoreCase(String specialite);
-    List<Medecin> findByNomContainingIgnoreCase(String nom);
-    List<Medecin> findByPrenomContainingIgnoreCase(String prenom);
+
+    // Recherche dans nom, prénom ou spécialité (Spring génère la requête automatiquement)
+    List<Medecin> findByNomContainingIgnoreCaseOrPrenomContainingIgnoreCaseOrSpecialiteContainingIgnoreCase(
+        String nom, String prenom, String specialite);
 }

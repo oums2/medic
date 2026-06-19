@@ -30,13 +30,10 @@ public class MedecinController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/recherche") // Recherche par nom ou spécialité
-    public List<Medecin> rechercher(@RequestParam(required = false) String nom,
-                                    @RequestParam(required = false) String specialite,
-                                    @RequestParam(required = false) String prenom) {
-        if (nom != null)        return medecinRepo.findByNomContainingIgnoreCase(nom);
-        if (specialite != null) return medecinRepo.findBySpecialiteContainingIgnoreCase(specialite);
-        if (prenom != null) return medecinRepo.findByPrenomContainingIgnoreCase(prenom);
+    @GetMapping("/recherche") // Recherche par nom, prénom ou spécialité
+    public List<Medecin> rechercher(@RequestParam(required = false) String q) {
+        if (q != null) return medecinRepo
+            .findByNomContainingIgnoreCaseOrPrenomContainingIgnoreCaseOrSpecialiteContainingIgnoreCase(q, q, q);
         return medecinRepo.findAll();
     }
 
