@@ -107,7 +107,7 @@
             let html = `<p>${medecins.length} médecin(s) trouvé(s)</p><ul>`;
             medecins.forEach(m => {
                 html += `<li>
-                    <strong>Dr ${m.prenom} ${m.nom}</strong> — ${m.specialite || 'Spécialité non renseignée'}
+                    <strong>Dr ${m.nom} ${m.prenom}</strong> — ${m.specialite || 'Spécialité non renseignée'}
                 </li>`;
             });
             html += '</ul>';
