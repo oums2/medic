@@ -44,7 +44,8 @@
         document.getElementById('bienvenue').textContent =
             `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
-        // Adapte le lien "Mon espace" selon le rôle
+        // Adapte le lien "Mon espace" selon le rôle 
+        // peut-être à modifier si je fais plusieurs page d'accueil en fonction de l'utilisateurs
         const lienEspace = document.getElementById('lien-espace');
         if (utilisateur.isAdmin) {
             lienEspace.href = '/admin.html';
