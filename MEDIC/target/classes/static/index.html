@@ -47,11 +47,13 @@
 
                     // Redirige selon le rôle
                     if (data.isAdmin) {
-                        window.location.href = '/admin.html';
+                        msg.textContent = "Bienvenue administrateur";
+                       // window.location.href = '/admin.html';
                     } else if (data.specialite !== undefined) {
                         window.location.href = '/medecin.html';
                     } else {
-                        window.location.href = '/patient.html';
+                        // Seuls les patients accèdent à l'accueil avec la recherche
+                        window.location.href = '/accueil.html';
                     }
                 } else {
                     msg.textContent = data.message || 'Email ou mot de passe incorrect.';

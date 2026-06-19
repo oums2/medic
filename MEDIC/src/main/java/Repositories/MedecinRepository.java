@@ -9,5 +9,6 @@ import java.util.List;
 
 //@Repository
 public interface MedecinRepository extends JpaRepository<Medecin, Integer>{
-    List<Medecin> findBySpecialite(String specialite);
+    List<Medecin> findBySpecialiteContainingIgnoreCase(String specialite);
+    List<Medecin> findByNomContainingIgnoreCase(String nom);
 }

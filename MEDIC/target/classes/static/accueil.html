@@ -2,21 +2,126 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>MEDIC - Accueil </title>
+    <title>MEDIC - Accueil</title>
 </head>
-
 <body>
-    <h1> Accueil </h1>
+    <h1>Accueil</h1>
 
-    <form id="recherche">
+    <p id="bienvenue"></p>
+
+    <a href="/patient.html" id="lien-espace">Mon espace</a> |
+    <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
+
+    <hr>
+
+    <h2>Rechercher un médecin</h2>
+
+    <form id="form-recherche">
         <label>Recherche :</label>
-        <input type="search" id="recherche" name="recherche">
+        <input type="search" id="recherche" name="recherche" placeholder="Nom ou spécialité...">
         <button type="submit">Rechercher</button>
     </form>
 
+    <div id="resultats"></div>
+
     <script>
+        // Récupère l'utilisateur connecté depuis le localStorage
+        const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
 
+        // Si pas connecté, redirige vers la page de connexion
+        if (!utilisateur) {
+            window.location.href = '/';
+        }
+
+        // Si admin ou médecin, redirige vers leur page respective
+        if (utilisateur.isAdmin) {
+            window.location.href = '/admin.html';
+        } else if (utilisateur.specialite !== undefined) {
+            window.location.href = '/medecin.html';
+        }
+
+        // Affiche le message de bienvenue
+        document.getElementById('bienvenue').textContent =
+            `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
+
+        // Adapte le lien "Mon espace" selon le rôle
+        const lienEspace = document.getElementById('lien-espace');
+        if (utilisateur.isAdmin) {
+            lienEspace.href = '/admin.html';
+            lienEspace.textContent = 'Espace Admin';
+        } else if (utilisateur.specialite !== undefined) {
+            lienEspace.href = '/medecin.html';
+            lienEspace.textContent = 'Mon planning';
+        } else {
+            lienEspace.href = '/patient.html';
+            lienEspace.textContent = 'Mon espace';
+        }
+
+        // Recherche selon la valeur saisie (nom ou spécialité)
+        async function rechercher() {
+            const valeur = document.getElementById('recherche').value.trim();
+
+            // Si champ vide, affiche tous les médecins
+            if (!valeur) {
+                tousLesMedecins();
+                return;
+            }
+
+            try {
+                // Recherche d'abord par spécialité
+                let response = await fetch(`/medecins/recherche?specialite=${encodeURIComponent(valeur)}`);
+                let resultats = await response.json();
+
+                // Si aucun résultat par spécialité, cherche par nom
+                if (resultats.length === 0) {
+                    response = await fetch(`/medecins/recherche?nom=${encodeURIComponent(valeur)}`);
+                    resultats = await response.json();
+                }
+
+                afficherResultats(resultats);
+            } catch (err) {
+                document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
+            }
+        }
+
+        // Charge et affiche tous les médecins
+        async function tousLesMedecins() {
+            try {
+                const response = await fetch('/medecins/recherche');
+                const resultats = await response.json();
+                afficherResultats(resultats);
+            } catch (err) {
+                document.getElementById('resultats').textContent = 'Erreur lors du chargement.';
+            }
+        }
+
+        // Affiche la liste des médecins dans la page
+        function afficherResultats(medecins) {
+            const div = document.getElementById('resultats');
+
+            if (medecins.length === 0) {
+                div.innerHTML = '<p>Aucun médecin trouvé.</p>';
+                return;
+            }
+
+            let html = `<p>${medecins.length} médecin(s) trouvé(s)</p><ul>`;
+            medecins.forEach(m => {
+                html += `<li>
+                    <strong>Dr ${m.prenom} ${m.nom}</strong> — ${m.specialite || 'Spécialité non renseignée'}
+                </li>`;
+            });
+            html += '</ul>';
+            div.innerHTML = html;
+        }
+
+        // Soumission du formulaire de recherche
+        document.getElementById('form-recherche').addEventListener('submit', function(e) {
+            e.preventDefault(); // Empêche le rechargement de la page
+            rechercher();
+        });
+
+        // Charge tous les médecins au chargement de la page
+        tousLesMedecins();
     </script>
-
 </body>
 </html>
