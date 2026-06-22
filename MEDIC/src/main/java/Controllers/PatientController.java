@@ -34,7 +34,7 @@ public class PatientController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/recherche") // Recherche par nom, prénom ou spécialité
+    @GetMapping("/recherche") // Recherche par nom, prénom 
     public List<Patient> rechercher(@RequestParam(required = false) String q) {
         if (q != null) return patientRepo
             .findByNomContainingIgnoreCaseOrPrenomContainingIgnoreCase(q, q);
