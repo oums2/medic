@@ -1,18 +1,108 @@
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <title>MEDIC - Accueil admin </title>
-    </head>
-    <body>
-        <h1> Accueil Administrateurs</h1>
-        
-        
-        <a href="/admin.html" id="lien-espace">Mes informations</a> |
-        <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC - Accueil Admin</title>
+</head>
+<body>
+    <h1>Accueil Administrateur</h1>
 
-        <hr>
+    <p id="bienvenue"></p>
 
+    <a href="/admin.html">Mes informations</a> |
+    <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
 
-    </body>
+    <hr>
+
+    <h2>Rechercher un utilisateur</h2>
+
+    <!-- Barre de recherche -->
+    <form id="form-recherche">
+        <label>Recherche :</label>
+        <input type="search" id="recherche" placeholder="Nom ou prénom...">
+        <button type="submit">Rechercher</button>
+    </form>
+
+    <!-- Zone d'affichage des résultats -->
+    <div id="resultats"></div>
+
+    <script>
+        // Récupère l'utilisateur connecté depuis le localStorage
+        const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
+
+        // Si pas connecté, redirige vers la page de connexion
+        if (!utilisateur) {
+            window.location.href = '/';
+        }
+
+        // Seuls les admins ont accès à cette page
+        if (!utilisateur.admin) {
+            window.location.href = '/';
+        }
+
+        // Affiche le message de bienvenue
+        document.getElementById('bienvenue').textContent =
+            `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
+
+        // Recherche dans médecins et patients simultanément
+        async function rechercher() {
+            const valeur = document.getElementById('recherche').value.trim();
+            const div = document.getElementById('resultats');
+
+            try {
+                // Lance les deux recherches en parallèle
+                // Si champ vide, retourne tous les utilisateurs
+                const urlMedecins = valeur ? `/medecins/recherche?q=${encodeURIComponent(valeur)}` : '/medecins/recherche';
+                const urlPatients = valeur ? `/patients/recherche?q=${encodeURIComponent(valeur)}` : '/patients/recherche';
+
+                const [resMedecins, resPatients] = await Promise.all([
+                    fetch(urlMedecins).then(r => r.json()),
+                    fetch(urlPatients).then(r => r.json())
+                ]);
+
+                afficherResultats(resMedecins, resPatients);
+            } catch (err) {
+                document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
+            }
+        }
+
+        // Affiche les résultats séparés en médecins et patients
+        function afficherResultats(medecins, patients) {
+            const div = document.getElementById('resultats');
+
+            if (medecins.length === 0 && patients.length === 0) {
+                div.innerHTML = '<p>Aucun utilisateur trouvé.</p>';
+                return;
+            }
+
+            let html = '';
+
+            // Section médecins
+            if (medecins.length > 0) {
+                html += `<h3>Médecins (${medecins.length})</h3><ul>`;
+                medecins.forEach(m => {
+                    html += `<li><strong>Dr ${m.nom} ${m.prenom}</strong> — ${m.specialite || 'Spécialité non renseignée'}</li>`;
+                });
+                html += '</ul>';
+            }
+
+            // Section patients
+            if (patients.length > 0) {
+                html += `<h3>Patients (${patients.length})</h3><ul>`;
+                patients.forEach(p => {
+                    html += `<li><strong>${p.nom} ${p.prenom}</strong></li>`;
+                });
+                html += '</ul>';
+            }
+
+            div.innerHTML = html;
+        }
+
+        // Soumission du formulaire
+        document.getElementById('form-recherche').addEventListener('submit', function(e) {
+            e.preventDefault();
+            rechercher();
+        });
+    </script>
+</body>
 </html>
