@@ -1,105 +1,102 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>MEDIC - Accueil Médecin</title>
-</head>
-<body>
-    <h1>Accueil Médecin</h1>
+    <head>
+        <meta charset="UTF-8">
+        <title>MEDIC - Accueil Médecin</title>
+    </head>
+    <body>
+        <h1>Accueil Médecin</h1>
 
-    <!-- Message de bienvenue -->
-    <p id="bienvenue"></p>
+        <p id="bienvenue"></p>
 
-    <!-- Navigation -->
-    <a href="/medecin.html" id="lien-espace">Mes informations</a> |
-    <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
+        <a href="/medecin.html" id="lien-espace">Mes informations</a> |
+        <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
 
-    <hr>
+        <hr>
 
-    <h2>Rechercher un patient</h2>
+        <h2>Rechercher un patient</h2>
 
+        <form id="form-recherche">
+            <label>Recherche :</label>
+            <input type="search" id="recherche" name="recherche" placeholder="recherche...">
+            <button type="submit">Rechercher</button>
+        </form>
 
-    <form id="form-recherche">
-        <label>Recherche :</label>
-        <input type="search" id="recherche" name="recherche" placeholder="recherche...">
-        <button type="submit">Rechercher</button>
-    </form>
+        <div id="resultats"></div>
 
-    <div id="resultats"></div>
+        <script>
+            // Récupère l'utilisateur connecté depuis le localStorage
+            const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
 
-    <script>
-        // Récupère l'utilisateur connecté depuis le localStorage
-        const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
-
-        // Si pas connecté, redirige vers la page de connexion
-        if (!utilisateur) {
-            window.location.href = '/';
-        }
-
-        if (utilisateur.isAdmin) {
-            window.location.href = '/admin.html';
-        } else if (utilisateur.specialite === undefined) {
-            window.location.href = '/accueil.html';
-        }
-
-        document.getElementById('bienvenue').textContent =
-            `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
-
-        // Recherche selon la valeur saisie
-        async function rechercher() {
-            const valeur = document.getElementById('recherche').value.trim();
-
-            // Si champ vide, affiche tous les patients
-            if (!valeur) {
-                tousLesPatients();
-                return;
+            // Si pas connecté, redirige vers la page de connexion
+            if (!utilisateur){
+                window.location.href = '/';
             }
 
-            try {
-                // Recherche dans nom et prénom 
-                const response = await fetch(`/patients/recherche?q=${encodeURIComponent(valeur)}`);
-                const resultats = await response.json();
-                afficherResultats(resultats);
-            } catch (err) {
-                document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
-            }
-        }
-
-        // Charge et affiche tous les patients
-        async function tousLesPatients() {
-            try {
-                const response = await fetch('/patients/recherche');
-                const resultats = await response.json();
-                afficherResultats(resultats);
-            } catch (err) {
-                document.getElementById('resultats').textContent = 'Erreur lors du chargement.';
-            }
-        }
-
-        // Affiche la liste des patients dans la page
-        function afficherResultats(patients) {
-            const div = document.getElementById('resultats');
-
-            if (patients.length === 0) {
-                div.innerHTML = '<p>Aucun patient trouvé.</p>';
-                return;
+            if (utilisateur.isAdmin){
+                window.location.href = '/admin.html';
+            }else if (utilisateur.specialite === undefined){
+                window.location.href = '/accueil.html';
             }
 
-            let html = `<p>${patients.length} patient(s) trouvé(s)</p><ul>`;
-            patients.forEach(p => {
-                html += `<li><strong>${p.nom} ${p.prenom}</strong></li>`;
+            document.getElementById('bienvenue').textContent =
+                `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
+
+            // Recherche selon la valeur saisie
+            async function rechercher(){
+                const valeur = document.getElementById('recherche').value.trim();
+
+                // Si champ vide, affiche tous les patients
+                if (!valeur) {
+                    tousLesPatients();
+                    return;
+                }
+
+                try {
+                    // Recherche dans nom et prénom 
+                    const response = await fetch(`/patients/recherche?q=${encodeURIComponent(valeur)}`);
+                    const resultats = await response.json();
+                    afficherResultats(resultats);
+                } catch (err) {
+                    document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
+                }
+            }
+
+            // Charge et affiche tous les patients
+            async function tousLesPatients(){
+                try {
+                    const response = await fetch('/patients/recherche');
+                    const resultats = await response.json();
+                    afficherResultats(resultats);
+                }catch (err){
+                    document.getElementById('resultats').textContent = 'Erreur lors du chargement.';
+                }
+            }
+
+            // Affiche la liste des patients dans la page
+            function afficherResultats(patients){
+                const div = document.getElementById('resultats');
+
+                if (patients.length === 0){
+                    div.innerHTML = '<p>Aucun patient trouvé.</p>';
+                    return;
+                }
+
+                let html = `<p>${patients.length} patient(s) trouvé(s)</p><ul>`;
+                patients.forEach(p => {
+                    html += `<li><strong>${p.nom} ${p.prenom}</strong></li>`;
+                });
+                html += '</ul>';
+                div.innerHTML = html;
+            }
+
+            // Soumission du formulaire de recherche
+            document.getElementById('form-recherche').addEventListener('submit', function(e) {
+                e.preventDefault();
+                rechercher();
             });
-            html += '</ul>';
-            div.innerHTML = html;
-        }
 
-        // Soumission du formulaire de recherche
-        document.getElementById('form-recherche').addEventListener('submit', function(e) {
-            e.preventDefault();
-            rechercher();
-        });
-
-        //tousLesPatients();
-    </script>
-</body>
+            //tousLesPatients();
+        </script>
+    </body>
 </html>
