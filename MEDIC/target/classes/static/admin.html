@@ -1,36 +1,37 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>MEDIC — Espace Administrateur</title>
-</head>
-<body>
-    <h1>Espace Admin</h1>
+    <head>
+        <meta charset="UTF-8">
+        <title>MEDIC — Espace Administrateur</title>
+    </head>
+    <body>
+        <h1>Espace Admin</h1>
 
-    <h2>Mes informations : </h2>
-    <p>Nom : <span id="nom"></span></p>
-    <p>Prénom : <span id="prenom"></span></p>
-    <p>Email : <span id="email"></span></p>
+        <h2>Mes informations : </h2>
+        <p>Nom : <span id="nom"></span></p>
+        <p>Prénom : <span id="prenom"></span></p>
+        <p>Email : <span id="email"></span></p>
 
-    <br>
-    <a href="/">Se déconnecter</a>
-    <br>
-    <button onclick="history.back()">Retour</button>
-
-    <script>
-        // Récupère les infos sauvegardées lors de la connexion
-        const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
-
-        // Si pas connecté, redirige vers la page de connexion
-        if (!utilisateur){
-            window.location.href = '/';
-        }
+        <br>
+        <a href="/">Se déconnecter</a>
         
-        // Affiche les informations dans la page
-        document.getElementById('nom').textContent     = utilisateur.nom;
-        document.getElementById('prenom').textContent  = utilisateur.prenom;
-        document.getElementById('email').textContent   = utilisateur.email;
-        
-    </script>
-</body>
+        <br>
+        <button onclick="history.back()">Retour</button>
+
+        <script>
+            // Récupère les infos sauvegardées lors de la connexion
+            const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
+
+            // Si pas connecté, redirige vers la page de connexion
+            if (!utilisateur){
+                window.location.href = '/';
+            }
+            
+            // Affiche les informations dans la page
+            document.getElementById('nom').textContent     = utilisateur.nom;
+            document.getElementById('prenom').textContent  = utilisateur.prenom;
+            document.getElementById('email').textContent   = utilisateur.email;
+            
+        </script>
+    </body>
 </html>
