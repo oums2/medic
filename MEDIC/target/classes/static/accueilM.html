@@ -47,7 +47,7 @@
                 const valeur = document.getElementById('recherche').value.trim();
 
                 // Si champ vide, affiche tous les patients
-                if (!valeur) {
+                if (!valeur){
                     tousLesPatients();
                     return;
                 }
@@ -57,7 +57,7 @@
                     const response = await fetch(`/patients/recherche?q=${encodeURIComponent(valeur)}`);
                     const resultats = await response.json();
                     afficherResultats(resultats);
-                } catch (err) {
+                }catch (err){
                     document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
                 }
             }
