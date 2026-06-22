@@ -23,13 +23,6 @@
                 window.location.href = '/';
             }
 
-            // Si admin ou patient, redirige vers leur page respective
-            if (utilisateur.isAdmin){
-                window.location.href = '/admin.html';
-            }else if (utilisateur.specialite == undefined){
-                window.location.href = '/accueil.html';
-            }
-
             // Adapte le lien "Mon espace" selon le rôle 
             // peut-être à modifier si je fais plusieurs page d'accueil en fonction de l'utilisateurs
             const lienEspace = document.getElementById('lien-espace');
@@ -43,6 +36,63 @@
                 lienEspace.href = '/patient.html';
                 lienEspace.textContent = 'Mes informations';
             }
+
+            // Recherche selon la valeur saisie 
+            async function rechercher(){
+                const valeur = document.getElementById('recherche').value.trim();
+
+                // Si champ vide, affiche tous les médecins
+                if (!valeur){
+                    tousLesPatients();
+                    return;
+                }
+
+                try{
+                    // recherche dans nom, prénom et spécialité
+                    const response = await fetch(`/patients/recherche?q=${encodeURIComponent(valeur)}`);
+                    const resultats = await response.json();
+                    afficherResultats(resultats);
+                }catch (err){
+                    document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
+                }
+            }
+
+            // Charge et affiche tous les médecins
+            async function tousLesPatients(){
+                try{
+                    const response = await fetch('/patients/recherche');
+                    const resultats = await response.json();
+                    afficherResultats(resultats);
+                }catch (err){
+                    document.getElementById('resultats').textContent = 'Erreur lors du chargement.';
+                }
+            }
+
+            // Affiche la liste des médecins dans la page
+            function afficherResultats(patients){
+                const div = document.getElementById('resultats');
+
+                if (patients.length === 0){
+                    div.innerHTML = '<p>Aucun patients trouvé.</p>';
+                    return;
+                }
+
+                let html = `<p>${patients.length} patient(s) trouvé(s)</p><ul>`;
+                patients.forEach(m => {
+                    html += `<li>
+                        <strong>Dr ${m.nom} ${m.prenom}</strong> 
+                    </li>`;
+                });
+                html += '</ul>';
+                div.innerHTML = html;
+            }
+
+            // Soumission du formulaire de recherche
+            document.getElementById('form-recherche').addEventListener('submit', function(e){
+                e.preventDefault(); // Empêche le rechargement de la page
+                rechercher();
+            });
+
 
 
 

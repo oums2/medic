@@ -34,6 +34,13 @@ public class PatientController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @GetMapping("/recherche") // Recherche par nom, prénom ou spécialité
+    public List<Patient> rechercher(@RequestParam(required = false) String q) {
+        if (q != null) return patientRepo
+            .findByNomContainingIgnoreCaseOrPrenomContainingIgnoreCase(q, q);
+        return patientRepo.findAll();
+    }
+
     @PostMapping("/inscription") // Utilisation de la fonction avec POST
     @ResponseStatus(HttpStatus.CREATED) // cette fonction crée un patient
     public Patient inscrire(@RequestBody Map<String, String> body){
