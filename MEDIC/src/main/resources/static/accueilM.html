@@ -13,5 +13,40 @@
         <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
 
         <hr>
+
+        <script>
+            // Récupère l'utilisateur connecté depuis le localStorage
+            const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
+
+             // Si pas connecté, redirige vers la page de connexion
+            if (!utilisateur){
+                window.location.href = '/';
+            }
+
+            // Si admin ou patient, redirige vers leur page respective
+            if (utilisateur.isAdmin){
+                window.location.href = '/admin.html';
+            }else if (utilisateur.specialite == undefined){
+                window.location.href = '/accueil.html';
+            }
+
+            // Adapte le lien "Mon espace" selon le rôle 
+            // peut-être à modifier si je fais plusieurs page d'accueil en fonction de l'utilisateurs
+            const lienEspace = document.getElementById('lien-espace');
+            if (utilisateur.isAdmin){
+                lienEspace.href = '/admin.html';
+                lienEspace.textContent = 'Espace Admin';
+            }else if (utilisateur.specialite !== undefined){
+                lienEspace.href = '/medecin.html';
+                lienEspace.textContent = 'Mes informations';
+            }else{
+                lienEspace.href = '/patient.html';
+                lienEspace.textContent = 'Mon espace';
+            }
+
+
+
+        </script>
+
     </body>
 </html>
