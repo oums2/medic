@@ -25,7 +25,6 @@
         <button type="submit">Rechercher</button>
     </form>
 
-    <!-- Zone d'affichage des résultats (élément manquant ajouté) -->
     <div id="resultats"></div>
 
     <script>
@@ -37,14 +36,12 @@
             window.location.href = '/';
         }
 
-        // Seuls les médecins ont accès à cette page (point 4 corrigé)
         if (utilisateur.isAdmin) {
             window.location.href = '/admin.html';
         } else if (utilisateur.specialite === undefined) {
             window.location.href = '/accueil.html';
         }
 
-        // Affiche le message de bienvenue (point 2 corrigé)
         document.getElementById('bienvenue').textContent =
             `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
@@ -59,7 +56,7 @@
             }
 
             try {
-                // Recherche dans nom et prénom en un seul appel
+                // Recherche dans nom et prénom 
                 const response = await fetch(`/patients/recherche?q=${encodeURIComponent(valeur)}`);
                 const resultats = await response.json();
                 afficherResultats(resultats);
