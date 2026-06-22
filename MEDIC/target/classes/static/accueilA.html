@@ -18,7 +18,7 @@
 
     <form id="form-recherche">
         <label>Recherche :</label>
-        <input type="search" id="recherche" placeholder="Nom ou prénom...">
+        <input type="search" id="recherche" placeholder="recherche...">
         <button type="submit">Rechercher</button>
     </form>
 
@@ -33,12 +33,10 @@
             window.location.href = '/';
         }
 
-        // Seuls les admins ont accès à cette page
         if (!utilisateur.admin) {
             window.location.href = '/';
         }
 
-        // Affiche le message de bienvenue
         document.getElementById('bienvenue').textContent =
             `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
