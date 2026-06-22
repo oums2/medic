@@ -53,7 +53,7 @@
                 }
 
                 try {
-                    // Recherche dans nom et prénom 
+                    //Recherche dans nom et prénom 
                     const response = await fetch(`/patients/recherche?q=${encodeURIComponent(valeur)}`);
                     const resultats = await response.json();
                     afficherResultats(resultats);
@@ -62,7 +62,7 @@
                 }
             }
 
-            // Charge et affiche tous les patients
+            //Charge et affiche tous les patients
             async function tousLesPatients(){
                 try {
                     const response = await fetch('/patients/recherche');
