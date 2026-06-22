@@ -50,7 +50,7 @@
         const lienEspace = document.getElementById('lien-espace');
         if (utilisateur.admin){
             msg.textContent = "Bienvenue administrateur 3";
-            window.location.href = '/';
+            //window.location.href = '/';
             lienEspace.href = '/admin.html';
             lienEspace.textContent = 'Espace Admin';
         }else if (utilisateur.specialite !== undefined){
