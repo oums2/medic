@@ -24,14 +24,13 @@
 
         <div id="resultats"></div>
 
-        <!-- Section prise de RDV, masquée jusqu'à ce qu'un médecin soit sélectionné -->
         <div id="rdv-section" style="display:none">
             <hr>
             <h3>Prendre RDV avec <span id="rdv-nom-medecin"></span></h3>
 
             <label>Choisir un jour :</label>
             <select id="rdv-jour">
-                <option value="">-- Sélectionner un jour --</option>
+                <option value=""> Sélectionner un jour </option>
                 <option>Lundi</option>
                 <option>Mardi</option>
                 <option>Mercredi</option>
@@ -40,7 +39,7 @@
                 <option>Samedi</option>
             </select>
             <button onclick="voirDispos()">Voir les disponibilités</button>
-            <button onclick="fermerRdv()">Annuler</button>
+            <button onclick="fermerRdv()">Annuler</button> <!-- revoir ! pas fan de cette affichage -->
 
             <div id="rdv-creneaux"></div>
             <p id="rdv-message"></p>
@@ -108,7 +107,7 @@
                 }
             }
 
-            // Affiche la liste des médecins avec bouton "Prendre RDV"
+            // Affiche la liste des médecins 
             function afficherResultats(medecins){
                 const div = document.getElementById('resultats');
 
