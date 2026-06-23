@@ -145,6 +145,9 @@
                 document.getElementById('rdv-section').style.display = 'none';
             }
 
+            // Créneau actuellement sélectionné
+            let creneauSelectionne = null;
+
             // Charge les créneaux disponibles pour le jour sélectionné
             async function voirDispos(){
                 const jour = document.getElementById('rdv-jour').value;
@@ -158,6 +161,7 @@
 
                 msg.textContent = '';
                 creneauxDiv.innerHTML = '';
+                creneauSelectionne = null;
 
                 try {
                     const response = await fetch(`/medecins/${medecinSelectionne}/dispos?jour=${encodeURIComponent(jour)}`);
@@ -168,23 +172,40 @@
                         return;
                     }
 
-                    let html = `<p>${creneaux.length} créneau(x) disponible(s) :</p><ul>`;
+                    let html = `<p>${creneaux.length} créneau(x) disponible(s) :</p><p>`;
                     creneaux.forEach(c => {
-                        html += `<li>
-                            ${c.jour} à ${c.heure}
-                            <button onclick="reserverRdv(${c.id}, '${c.jour}', '${c.heure}')">Réserver</button>
-                        </li>`;
+                        html += `<button id="creneau-${c.id}" onclick="selectionnerCreneau(${c.id}, '${c.jour}', '${c.heure}')">${c.heure}</button> `;
                     });
-                    html += '</ul>';
+                    html += `</p><br><button id="btn-valider" onclick="validerRdv()" disabled>Valider</button>`;
                     creneauxDiv.innerHTML = html;
                 } catch (err) {
                     msg.textContent = 'Erreur lors du chargement des disponibilités.';
                 }
             }
 
+            // Sélectionne un créneau (met en évidence le bouton cliqué)
+            function selectionnerCreneau(id, jour, heure){
+                // Remet tous les boutons à leur état normal
+                if (creneauSelectionne){
+                    const ancien = document.getElementById(`creneau-${creneauSelectionne.id}`);
+                    if (ancien) ancien.style.fontWeight = 'normal';
+                }
+
+                creneauSelectionne = { id, jour, heure };
+                const bouton = document.getElementById(`creneau-${id}`);
+                if (bouton) bouton.style.fontWeight = 'bold';
+
+                document.getElementById('btn-valider').disabled = false;
+            }
+
             // Confirme la prise de RDV
-            async function reserverRdv(creneauId, jour, heure){
+            async function validerRdv(){
                 const msg = document.getElementById('rdv-message');
+
+                if (!creneauSelectionne){
+                    msg.textContent = 'Veuillez sélectionner un créneau.';
+                    return;
+                }
 
                 try {
                     const response = await fetch(`/rdv/patients/${utilisateur.id}`, {
@@ -192,14 +213,15 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             medecinId: String(medecinSelectionne),
-                            jour: jour,
-                            heure: heure
+                            jour: creneauSelectionne.jour,
+                            heure: creneauSelectionne.heure
                         })
                     });
 
                     if (response.ok){
-                        msg.textContent = `RDV réservé le ${jour} à ${heure}.`;
+                        msg.textContent = `RDV réservé le ${creneauSelectionne.jour} à ${creneauSelectionne.heure}.`;
                         document.getElementById('rdv-creneaux').innerHTML = '';
+                        creneauSelectionne = null;
                     } else {
                         const data = await response.json();
                         msg.textContent = data.message || 'Erreur lors de la réservation.';
