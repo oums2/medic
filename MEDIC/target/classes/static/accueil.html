@@ -103,7 +103,7 @@
 
             // Charge et affiche tous les médecins
             async function tousLesMedecins(){
-                try {
+                try{
                     const response = await fetch('/medecins/recherche');
                     const resultats = await response.json();
                     afficherResultats(resultats);

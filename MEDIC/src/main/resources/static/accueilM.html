@@ -24,6 +24,11 @@
 
         <div id="resultats"></div>
 
+        <hr>
+
+        <h2>Mon planning</h2>
+        <div id="planning"><p>Chargement...</p></div>
+
         <script>
             //modifier pour qu'il recherche que les patients du medecins et pas tout les patients de la platforme
             
@@ -92,6 +97,34 @@
                 html += '</ul>';
                 div.innerHTML = html;
             }
+
+            // Charge et affiche le planning du médecin (créneaux réservés)
+            async function chargerPlanning(){
+                const div = document.getElementById('planning');
+                try {
+                    const response = await fetch(`/medecins/${utilisateur.id}/planning`);
+                    const creneaux = await response.json();
+
+                    if (creneaux.length === 0){
+                        div.innerHTML = '<p>Aucun rendez-vous prévu.</p>';
+                        return;
+                    }
+
+                    let html = '<ul>';
+                    creneaux.forEach(c => {
+                        html += `<li>
+                            ${c.jour} à ${c.heure}
+                            — ${c.patient.prenom} ${c.patient.nom}
+                        </li>`;
+                    });
+                    html += '</ul>';
+                    div.innerHTML = html;
+                } catch (err) {
+                    div.textContent = 'Erreur lors du chargement du planning.';
+                }
+            }
+
+            chargerPlanning();
 
             // Soumission du formulaire de recherche
             document.getElementById('form-recherche').addEventListener('submit', function(e) {
