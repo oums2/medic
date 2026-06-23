@@ -57,7 +57,7 @@
             // Si admin ou médecin, redirige vers leur page respective
             if (utilisateur.admin){
                 window.location.href = '/accueilA.html';
-            } else if (utilisateur.specialite !== undefined){
+            }else if (utilisateur.specialite !== undefined){
                 window.location.href = '/accueilM.html';
             }
 
@@ -70,7 +70,7 @@
             if (utilisateur.specialite !== undefined){
                 lienEspace.href = '/medecin.html';
                 lienEspace.textContent = 'Mes informations';
-            } else {
+            }else{
                 lienEspace.href = '/patient.html';
                 lienEspace.textContent = 'Mes informations';
             }
@@ -91,7 +91,7 @@
                     const response = await fetch(`/medecins/recherche?q=${encodeURIComponent(valeur)}`);
                     const resultats = await response.json();
                     afficherResultats(resultats);
-                } catch (err) {
+                }catch (err){
                     document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
                 }
             }
@@ -102,7 +102,7 @@
                     const response = await fetch('/medecins/recherche');
                     const resultats = await response.json();
                     afficherResultats(resultats);
-                } catch (err) {
+                }catch (err){
                     document.getElementById('resultats').textContent = 'Erreur lors du chargement.';
                 }
             }
