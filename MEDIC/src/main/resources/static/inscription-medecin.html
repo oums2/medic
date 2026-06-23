@@ -66,12 +66,12 @@
 
                 const data = await response.json();
 
-                if (response.ok) {
+                if (response.ok){
                     msg.textContent = 'Compte créé avec succès ! Vous pouvez vous connecter.';
-                } else {
+                }else{
                     msg.textContent = data.message || 'Une erreur est survenue.';
                 }
-            } catch (err) {
+            }catch (err){
                 msg.textContent = 'Erreur de connexion au serveur.';
             }
         });
