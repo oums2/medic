@@ -24,6 +24,11 @@
 
         <div id="resultats"></div>
 
+        <hr>
+
+        <h2>Mes rendez-vous</h2>
+        <div id="liste-rdv"><p>Chargement...</p></div>
+
         <div id="rdv-section" style="display:none">
             <hr>
             <h3>Prendre RDV avec <span id="rdv-nom-medecin"></span></h3>
@@ -229,6 +234,34 @@
                     msg.textContent = 'Erreur de connexion au serveur.';
                 }
             }
+
+            // Charge et affiche les rendez-vous du patient
+            async function chargerRdv(){
+                const div = document.getElementById('liste-rdv');
+                try {
+                    const response = await fetch(`/patients/${utilisateur.id}/rdv`);
+                    const rdvs = await response.json();
+
+                    if (rdvs.length === 0){
+                        div.innerHTML = '<p>Aucun rendez-vous.</p>';
+                        return;
+                    }
+
+                    let html = '<ul>';
+                    rdvs.forEach(c => {
+                        html += `<li>
+                            ${c.jour} à ${c.heure}
+                            — Dr ${c.medecin.prenom} ${c.medecin.nom} (${c.medecin.specialite})
+                        </li>`;
+                    });
+                    html += '</ul>';
+                    div.innerHTML = html;
+                } catch (err) {
+                    div.textContent = 'Erreur lors du chargement des rendez-vous.';
+                }
+            }
+
+            chargerRdv();
 
             // Soumission du formulaire de recherche
             document.getElementById('form-recherche').addEventListener('submit', function(e){
