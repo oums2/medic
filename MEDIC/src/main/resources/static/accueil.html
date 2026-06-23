@@ -11,7 +11,6 @@
 
         <a href="/patient.html" id="lien-espace">Mes informations</a>
         <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
-
         <hr>
 
         <h2>Rechercher un médecin</h2>
@@ -23,7 +22,6 @@
         </form>
 
         <div id="resultats"></div>
-
         <hr>
 
         <h2>Mes rendez-vous</h2>
@@ -70,7 +68,7 @@
             document.getElementById('bienvenue').textContent =
                 `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
-            // Adapte le lien "Mon espace" selon le rôle
+            // Adapte selon le rôle
             const lienEspace = document.getElementById('lien-espace');
             if (utilisateur.specialite !== undefined){
                 lienEspace.href = '/medecin.html';
