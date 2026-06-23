@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RdvService {
@@ -55,5 +56,14 @@ public class RdvService {
 
     public List<Creneau> getPlanningMedecin(Medecin medecin){
         return creneauRepo.findByMedecinAndEstDispoFalse(medecin);
+    }
+
+    // Retourne les patients distincts ayant un RDV avec ce médecin
+    @Transactional
+    public List<Patient> getPatientsduMedecin(Medecin medecin){
+        return getPlanningMedecin(medecin).stream()
+                .map(Creneau::getPatient)
+                .distinct()
+                .collect(Collectors.toList());
     }
 }

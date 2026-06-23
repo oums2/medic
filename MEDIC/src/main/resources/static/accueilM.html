@@ -56,8 +56,8 @@
                 }
 
                 try {
-                    //Recherche dans nom et prénom 
-                    const response = await fetch(`/patients/recherche?q=${encodeURIComponent(valeur)}`);
+                    // Recherche uniquement parmi les patients de ce médecin
+                    const response = await fetch(`/medecins/${utilisateur.id}/patients?q=${encodeURIComponent(valeur)}`);
                     const resultats = await response.json();
                     afficherResultats(resultats);
                 }catch (err){
@@ -65,10 +65,10 @@
                 }
             }
 
-            //Charge et affiche tous les patients
+            // Charge tous les patients de ce médecin
             async function tousLesPatients(){
                 try {
-                    const response = await fetch('/patients/recherche');
+                    const response = await fetch(`/medecins/${utilisateur.id}/patients`);
                     const resultats = await response.json();
                     afficherResultats(resultats);
                 }catch (err){

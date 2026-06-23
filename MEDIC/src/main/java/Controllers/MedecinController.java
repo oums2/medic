@@ -2,6 +2,7 @@ package Controllers;
 
 import Entities.Creneau;
 import Entities.Medecin;
+import Entities.Patient;
 import Repositories.MedecinRepository;
 import Services.InscriptionService;
 import Services.RdvService;
@@ -67,6 +68,21 @@ public class MedecinController {
         Medecin medecin = medecinRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medecin introuvable"));
         return rdvService.getDisposMedecin(medecin, jour);
+    }
+
+    @GetMapping("/{id}/patients") // Patients ayant un RDV avec ce médecin
+    public List<Patient> getPatients(@PathVariable int id, @RequestParam(required = false) String q){
+        Medecin medecin = medecinRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
+        List<Patient> patients = rdvService.getPatientsduMedecin(medecin);
+        if (q != null) {
+            String filtre = q.toLowerCase();
+            return patients.stream()
+                    .filter(p -> p.getNom().toLowerCase().contains(filtre)
+                              || p.getPrenom().toLowerCase().contains(filtre))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        return patients;
     }
 
     @GetMapping("/{id}/planning") // Utilisation de la fonction avec GET
