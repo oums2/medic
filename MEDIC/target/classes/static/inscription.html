@@ -2,17 +2,10 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>MEDIC — Inscription</title>
+    <title>MEDIC — Inscription Patient</title>
 </head>
 <body>
-    <h1>Inscription</h1>
-
-    <label>Type de compte :</label><br> 
-    <!-- peut-etre changer en deux inscriptions distinctes avec un lien qui renvoie pour ajouter un medecin -->
-    <select id="type" onchange="changerType()">
-        <option value="patient">Patient</option>
-        <option value="medecin">Médecin</option>
-    </select><br><br>
+    <h1>Inscription Patient</h1>
 
     <form id="form-patient">
 
@@ -37,91 +30,41 @@
         <button type="submit">S'inscrire</button>
     </form>
 
-    <form id="form-medecin" style="display:none">
-
-        <label>Nom :</label><br>
-        <input type="text" id="m-nom" required><br><br>
-
-        <label>Prénom :</label><br>
-        <input type="text" id="m-prenom" required><br><br>
-
-        <label>Email :</label><br>
-        <input type="email" id="m-email" required><br><br>
-
-        <label>Mot de passe :</label><br>
-        <input type="password" id="m-motDePasse" required><br><br>
-
-        <label>Spécialité :</label><br>
-        <input type="text" id="m-specialite"><br><br>
-
-        <button type="submit">S'inscrire</button>
-    </form>
-
     <p id="message"></p>
 
-    <!--  -->
-
     <p><a href="/">Déjà inscrit ? Se connecter</a></p>
+    <p>Vous êtes médecin ? <a href="/inscription-medecin.html">Inscription médecin</a></p>
 
     <script>
-        // change si medecin ou patient + affiche le formulaire correspondant
-        function changerType() {
-            const type = document.getElementById('type').value;
+        document.getElementById('form-patient').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-            document.getElementById('form-patient').style.display = type === 'patient' ? 'block' : 'none';
-            document.getElementById('form-medecin').style.display = type === 'medecin' ? 'block' : 'none';
-
-            document.getElementById('message').textContent = '';
-        }
-
-        async function inscrire(url, body) {
             const msg = document.getElementById('message');
-            try {
 
-                const response = await fetch(url, {
+            try {
+                const response = await fetch('/patients/inscription', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify({
+                        nom:        document.getElementById('p-nom').value,
+                        prenom:     document.getElementById('p-prenom').value,
+                        email:      document.getElementById('p-email').value,
+                        motDePasse: document.getElementById('p-motDePasse').value,
+                        adresse:    document.getElementById('p-adresse').value,
+                        numero:     document.getElementById('p-numero').value
+                    })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
-                    msg.textContent = 'Bienvenue ! ' 
-                    // renvoie vers la page patient - a modifier vers la page d'accueil et changer si medecin ou patient
-                    // localStorage.setItem('utilisateur', JSON.stringify(data));
-                    // window.location.href = '/patient.html';
+                    msg.textContent = 'Compte créé avec succès ! Vous pouvez vous connecter.';
                 } else {
                     msg.textContent = data.message || 'Une erreur est survenue.';
                 }
             } catch (err) {
                 msg.textContent = 'Erreur de connexion au serveur.';
             }
-        }
-
-        document.getElementById('form-patient').addEventListener('submit', function(e) {
-            e.preventDefault(); // Empêche le rechargement de la page
-
-            inscrire('/patients/inscription', {
-                nom:        document.getElementById('p-nom').value,
-                prenom:     document.getElementById('p-prenom').value,
-                email:      document.getElementById('p-email').value,
-                motDePasse: document.getElementById('p-motDePasse').value,
-                adresse:    document.getElementById('p-adresse').value,
-                numero:     document.getElementById('p-numero').value
-            });
-        });
-
-        document.getElementById('form-medecin').addEventListener('submit', function(e) {
-            e.preventDefault(); 
-
-            inscrire('/medecins/inscription', {
-                nom:        document.getElementById('m-nom').value,
-                prenom:     document.getElementById('m-prenom').value,
-                email:      document.getElementById('m-email').value,
-                motDePasse: document.getElementById('m-motDePasse').value,
-                specialite: document.getElementById('m-specialite').value
-            });
         });
     </script>
 </body>
