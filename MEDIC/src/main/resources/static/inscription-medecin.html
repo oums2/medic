@@ -1,81 +1,81 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>MEDIC — Inscription Médecin</title>
-</head>
-<body>
-    <h1>Inscription Médecin</h1>
+    <head>
+        <meta charset="UTF-8">
+        <title>MEDIC — Inscription Médecin</title>
+    </head>
+    <body>
+        <h1>Inscription Médecin</h1>
 
-    <form id="form-medecin">
+        <form id="form-medecin">
 
-        <label>Nom :</label><br>
-        <input type="text" id="m-nom" required><br><br>
+            <label>Nom :</label><br>
+            <input type="text" id="m-nom" required><br><br>
 
-        <label>Prénom :</label><br>
-        <input type="text" id="m-prenom" required><br><br>
+            <label>Prénom :</label><br>
+            <input type="text" id="m-prenom" required><br><br>
 
-        <label>Email :</label><br>
-        <input type="email" id="m-email" required><br><br>
+            <label>Email :</label><br>
+            <input type="email" id="m-email" required><br><br>
 
-        <label>Mot de passe :</label><br>
-        <input type="password" id="m-motDePasse" required><br><br>
+            <label>Mot de passe :</label><br>
+            <input type="password" id="m-motDePasse" required><br><br>
 
-        <label>Spécialité :</label><br>
-        <select id="m-specialite" required>
-            <option value=""> Choisir une spécialité </option>
-            <option>Médecine générale</option>
-            <option>Cardiologie</option>
-            <option>Dermatologie</option>
-            <option>Dentiste</option>
-            <option>Gynécologie</option>
-            <option>Neurologie</option>
-            <option>Ophtalmologie</option>
-            <option>Pédiatrie</option>
-            <option>Pneumologie</option>
-            <option>Psychiatrie</option>
-            <option>Radiologie</option>
-            <option>Rhumatologie</option>
-        </select><br><br>
+            <label>Spécialité :</label><br>
+            <select id="m-specialite" required>
+                <option value=""> Choisir une spécialité </option>
+                <option>Médecine générale</option>
+                <option>Cardiologie</option>
+                <option>Dermatologie</option>
+                <option>Dentiste</option>
+                <option>Gynécologie</option>
+                <option>Neurologie</option>
+                <option>Ophtalmologie</option>
+                <option>Pédiatrie</option>
+                <option>Pneumologie</option>
+                <option>Psychiatrie</option>
+                <option>Radiologie</option>
+                <option>Rhumatologie</option>
+            </select><br><br>
 
-        <button type="submit">S'inscrire</button>
-    </form>
+            <button type="submit">S'inscrire</button>
+        </form>
 
-    <p id="message"></p>
+        <p id="message"></p>
 
-    <p><a href="/">Déjà inscrit ? Se connecter</a></p>
-    <p>Vous êtes patient ? <a href="/inscription.html">Inscription patient</a></p>
+        <p><a href="/">Déjà inscrit ? Se connecter</a></p>
+        <p>Vous êtes patient ? <a href="/inscription.html">Inscription patient</a></p>
 
-    <script>
-        document.getElementById('form-medecin').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        <script>
+            document.getElementById('form-medecin').addEventListener('submit', async function(e) {
+                e.preventDefault();
 
-            const msg = document.getElementById('message');
+                const msg = document.getElementById('message');
 
-            try {
-                const response = await fetch('/medecins/inscription', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        nom:        document.getElementById('m-nom').value,
-                        prenom:     document.getElementById('m-prenom').value,
-                        email:      document.getElementById('m-email').value,
-                        motDePasse: document.getElementById('m-motDePasse').value,
-                        specialite: document.getElementById('m-specialite').value
-                    })
-                });
+                try {
+                    const response = await fetch('/medecins/inscription', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            nom:        document.getElementById('m-nom').value,
+                            prenom:     document.getElementById('m-prenom').value,
+                            email:      document.getElementById('m-email').value,
+                            motDePasse: document.getElementById('m-motDePasse').value,
+                            specialite: document.getElementById('m-specialite').value
+                        })
+                    });
 
-                const data = await response.json();
+                    const data = await response.json();
 
-                if (response.ok){
-                    msg.textContent = 'Compte créé avec succès ! Vous pouvez vous connecter.';
-                }else{
-                    msg.textContent = data.message || 'Une erreur est survenue.';
+                    if (response.ok){
+                        msg.textContent = 'Compte créé avec succès ! Vous pouvez vous connecter.';
+                    }else{
+                        msg.textContent = data.message || 'Une erreur est survenue.';
+                    }
+                }catch (err){
+                    msg.textContent = 'Erreur de connexion au serveur.';
                 }
-            }catch (err){
-                msg.textContent = 'Erreur de connexion au serveur.';
-            }
-        });
-    </script>
-</body>
+            });
+        </script>
+    </body>
 </html>
