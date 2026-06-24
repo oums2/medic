@@ -10,7 +10,7 @@
         <p id="bienvenue"></p>
 
         <a href="/patient.html" id="lien-espace">Mes informations</a>
-        <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
+        <a href="/" onclick="deconnexion()">Se déconnecter</a>
         <hr>
 
         <h2>Rechercher un médecin</h2>
@@ -31,6 +31,7 @@
             <hr>
             <h3>Prendre RDV avec <span id="rdv-nom-medecin"></span></h3>
 
+            <!-- changer pour un calendrier -->
             <label>Choisir un jour :</label>
             <select id="rdv-jour">
                 <option value=""> Sélectionner un jour </option>
@@ -48,20 +49,16 @@
             <p id="rdv-message"></p>
         </div>
 
+        <script src="/auth.js"></script>
         <script>
-            // Récupère l'utilisateur connecté depuis le localStorage
-            const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
-
-            // Si pas connecté, redirige vers la page de connexion
-            if (!utilisateur){
-                window.location.href = '/';
-            }
+            const utilisateur = getUtilisateur();
+            verifierPatient(utilisateur);
 
             // Affiche le message de bienvenue
             document.getElementById('bienvenue').textContent =
                 `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
-            // Adapte selon le rôle
+            // Adapte selon le rôle // a voir si nécessaire ou bien l'enlever 
             const lienEspace = document.getElementById('lien-espace');
             if (utilisateur.specialite !== undefined){
                 lienEspace.href = '/medecin.html';

@@ -45,17 +45,14 @@
         </div>
 
         <br>
-        <a href="/">Se déconnecter</a>
+        <a href="/" onclick="deconnexion()">Se déconnecter</a>
 
         <br>
         <button onclick="history.back()">Retour</button>
 
+        <script src="/auth.js"></script>
         <script>
-            const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
-
-            if (!utilisateur){
-                window.location.href = '/';
-            }
+            const utilisateur = getUtilisateur();
 
             document.getElementById('nom').textContent     = utilisateur.nom;
             document.getElementById('prenom').textContent  = utilisateur.prenom;

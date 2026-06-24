@@ -10,7 +10,7 @@
         <p id="bienvenue"></p>
 
         <a href="/medecin.html" id="lien-espace">Mes informations</a> |
-        <a href="/" onclick="localStorage.clear()">Se déconnecter</a>
+        <a href="/" onclick="deconnexion()">Se déconnecter</a>
 
         <hr>
 
@@ -29,21 +29,10 @@
         <h2>Mon planning</h2>
         <div id="planning"><p>Chargement...</p></div>
 
+        <script src="/auth.js"></script>
         <script>
-            
-            // Récupère l'utilisateur connecté depuis le localStorage
-            const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
-
-            // Si pas connecté, redirige vers la page de connexion
-            if (!utilisateur){
-                window.location.href = '/';
-            }
-
-            if (utilisateur.admin){
-                window.location.href = '/accueilA.html';
-            }else if (utilisateur.specialite === undefined){
-                window.location.href = '/accueil.html';
-            }
+            const utilisateur = getUtilisateur();
+            verifierMedecin(utilisateur);
 
             document.getElementById('bienvenue').textContent =
                 `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
