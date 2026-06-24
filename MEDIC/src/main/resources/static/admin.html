@@ -7,31 +7,105 @@
     <body>
         <h1>Espace Admin</h1>
 
-        <h2>Mes informations : </h2>
+        <h2>Mes informations</h2>
         <p>Nom : <span id="nom"></span></p>
         <p>Prénom : <span id="prenom"></span></p>
         <p>Email : <span id="email"></span></p>
 
+        <button onclick="afficherFormulaire()">Modifier mes informations</button>
+
+        <div id="form-modif" style="display:none">
+            <hr>
+            <h2>Modifier mes informations</h2>
+
+            <label>Nom :</label><br>
+            <input type="text" id="m-nom"><br><br>
+
+            <label>Prénom :</label><br>
+            <input type="text" id="m-prenom"><br><br>
+
+            <label>Email :</label><br>
+            <input type="email" id="m-email"><br><br>
+
+            <label>Nouveau mot de passe (laisser vide pour ne pas changer) :</label><br>
+            <input type="password" id="m-motDePasse"><br><br>
+
+            <button onclick="enregistrer()">Enregistrer</button>
+            <button onclick="annuler()">Annuler</button>
+
+            <p id="message"></p>
+        </div>
+
         <br>
         <a href="/">Se déconnecter</a>
-        
+
         <br>
         <button onclick="history.back()">Retour</button>
 
         <script>
-            // Récupère les infos sauvegardées lors de la connexion
             const utilisateur = JSON.parse(localStorage.getItem('utilisateur'));
 
-            // Si pas connecté, redirige vers la page de connexion
             if (!utilisateur){
                 window.location.href = '/';
             }
-            
-            // Affiche les informations dans la page
-            document.getElementById('nom').textContent     = utilisateur.nom;
-            document.getElementById('prenom').textContent  = utilisateur.prenom;
-            document.getElementById('email').textContent   = utilisateur.email;
-            
+
+            document.getElementById('nom').textContent    = utilisateur.nom;
+            document.getElementById('prenom').textContent = utilisateur.prenom;
+            document.getElementById('email').textContent  = utilisateur.email;
+
+            function afficherFormulaire(){
+                document.getElementById('m-nom').value    = utilisateur.nom;
+                document.getElementById('m-prenom').value = utilisateur.prenom;
+                document.getElementById('m-email').value  = utilisateur.email;
+                document.getElementById('m-motDePasse').value = '';
+                document.getElementById('message').textContent = '';
+                document.getElementById('form-modif').style.display = 'block';
+            }
+
+            function annuler(){
+                document.getElementById('form-modif').style.display = 'none';
+            }
+
+            async function enregistrer(){
+                const msg = document.getElementById('message');
+                const body = {};
+
+                const nom    = document.getElementById('m-nom').value.trim();
+                const prenom = document.getElementById('m-prenom').value.trim();
+                const email  = document.getElementById('m-email').value.trim();
+                const mdp    = document.getElementById('m-motDePasse').value;
+
+                if (nom)    body.nom        = nom;
+                if (prenom) body.prenom     = prenom;
+                if (email)  body.email      = email;
+                if (mdp)    body.motDePasse = mdp;
+
+                try {
+                    const response = await fetch(`/admin/${utilisateur.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok){
+                        const majUtilisateur = { ...utilisateur, ...data };
+                        localStorage.setItem('utilisateur', JSON.stringify(majUtilisateur));
+
+                        document.getElementById('nom').textContent    = data.nom;
+                        document.getElementById('prenom').textContent = data.prenom;
+                        document.getElementById('email').textContent  = data.email;
+
+                        msg.textContent = 'Informations mises à jour.';
+                        document.getElementById('form-modif').style.display = 'none';
+                    } else {
+                        msg.textContent = data.message || 'Erreur lors de la mise à jour.';
+                    }
+                } catch (err) {
+                    msg.textContent = 'Erreur de connexion au serveur.';
+                }
+            }
         </script>
     </body>
 </html>
