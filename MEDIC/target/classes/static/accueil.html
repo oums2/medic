@@ -57,13 +57,6 @@
                 window.location.href = '/';
             }
 
-            // Si admin ou médecin, redirige vers leur page respective
-            if (utilisateur.admin){
-                window.location.href = '/accueilA.html';
-            }else if (utilisateur.specialite !== undefined){
-                window.location.href = '/accueilM.html';
-            }
-
             // Affiche le message de bienvenue
             document.getElementById('bienvenue').textContent =
                 `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
