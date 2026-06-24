@@ -69,7 +69,10 @@
             if (medecins.length > 0) {
                 html += `<h3>Médecins (${medecins.length})</h3><ul>`;
                 medecins.forEach(m => {
-                    html += `<li><strong>Dr ${m.nom} ${m.prenom}</strong> — ${m.specialite || 'Spécialité non renseignée'}</li>`;
+                    html += `<li id="medecin-${m.id}">
+                        <strong>Dr ${m.nom} ${m.prenom}</strong> — ${m.specialite || 'Spécialité non renseignée'}
+                        <button onclick="supprimerMedecin(${m.id}, this)">Supprimer</button>
+                    </li>`;
                 });
                 html += '</ul>';
             }
@@ -78,12 +81,45 @@
             if (patients.length > 0) {
                 html += `<h3>Patients (${patients.length})</h3><ul>`;
                 patients.forEach(p => {
-                    html += `<li><strong>${p.nom} ${p.prenom}</strong></li>`;
+                    html += `<li id="patient-${p.id}">
+                        <strong>${p.nom} ${p.prenom}</strong>
+                        <button onclick="supprimerPatient(${p.id}, this)">Supprimer</button>
+                    </li>`;
                 });
                 html += '</ul>';
             }
 
             div.innerHTML = html;
+        }
+
+        // Supprime un médecin
+        async function supprimerMedecin(id, bouton){
+            if (!confirm('Supprimer ce médecin ?')) return;
+            try {
+                const response = await fetch(`/admin/medecins/${id}`, { method: 'DELETE' });
+                if (response.ok){
+                    bouton.closest('li').remove();
+                } else {
+                    alert('Erreur lors de la suppression.');
+                }
+            } catch (err) {
+                alert('Erreur de connexion au serveur.');
+            }
+        }
+
+        // Supprime un patient
+        async function supprimerPatient(id, bouton){
+            if (!confirm('Supprimer ce patient ?')) return;
+            try {
+                const response = await fetch(`/admin/patients/${id}`, { method: 'DELETE' });
+                if (response.ok){
+                    bouton.closest('li').remove();
+                } else {
+                    alert('Erreur lors de la suppression.');
+                }
+            } catch (err) {
+                alert('Erreur de connexion au serveur.');
+            }
         }
 
         // Soumission du formulaire
