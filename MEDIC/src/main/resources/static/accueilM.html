@@ -102,12 +102,43 @@
                         html += `<li>
                             ${c.jour} à ${c.heure}
                             — ${c.patient.prenom} ${c.patient.nom}
+                            <button onclick="annulerRdv(${c.patient.id}, '${c.jour}', '${c.heure}', this)">Annuler</button>
                         </li>`;
                     });
                     html += '</ul>';
                     div.innerHTML = html;
                 } catch (err) {
                     div.textContent = 'Erreur lors du chargement du planning.';
+                }
+            }
+
+            // Annule un rendez-vous
+            async function annulerRdv(patientId, jour, heure, bouton){
+                if (!confirm(`Annuler le RDV du ${jour} à ${heure} ?`)) return;
+
+                try {
+                    const response = await fetch('/rdv', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            patientId: String(patientId),
+                            medecinId: String(utilisateur.id),
+                            jour: jour,
+                            heure: heure
+                        })
+                    });
+
+                    if (response.ok){
+                        bouton.closest('li').remove();
+                        const liste = document.getElementById('planning');
+                        if (!liste.querySelector('li')){
+                            liste.innerHTML = '<p>Aucun rendez-vous prévu.</p>';
+                        }
+                    } else {
+                        alert('Erreur lors de l\'annulation.');
+                    }
+                } catch (err) {
+                    alert('Erreur de connexion au serveur.');
                 }
             }
 
