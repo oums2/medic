@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC — Prendre un rendez-vous</title>
+</head>
+<body>
+    <h1>Prendre un rendez-vous</h1>
+
+    <p id="info-medecin"></p>
+
+    <label>Jour :</label>
+    <select id="jour">
+        <option value="">-- Sélectionner un jour --</option>
+        <option>Lundi</option><option>Mardi</option><option>Mercredi</option>
+        <option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
+    </select>
+    <button onclick="voirDispos()">Voir les disponibilités</button>
+
+    <div id="creneaux"></div>
+    <p id="message"></p>
+
+    <br><button onclick="history.back()">Retour</button>
+
+    <script src="/auth.js"></script>
+    <script>
+        const utilisateur = getUtilisateur();
+        verifierPatient(utilisateur);
+
+        const medecin = JSON.parse(localStorage.getItem('medecin-selectionne'));
+        if (!medecin) window.location.href = '/accueil.html';
+
+        document.getElementById('info-medecin').textContent =
+            `Dr ${medecin.prenom} ${medecin.nom} — ${medecin.specialite}`;
+
+        let creneauSelectionne = null;
+
+        async function voirDispos(){
+            const jour = document.getElementById('jour').value;
+            const msg  = document.getElementById('message');
+            if (!jour){ msg.textContent = 'Veuillez choisir un jour.'; return; }
+            creneauSelectionne = null;
+            document.getElementById('creneaux').innerHTML = '';
+            msg.textContent = '';
+            try {
+                const dispos = await fetch(`/medecins/${medecin.id}/dispos?jour=${encodeURIComponent(jour)}`).then(r => r.json());
+                if (dispos.length === 0){
+                    document.getElementById('creneaux').innerHTML = '<p>Aucun créneau disponible.</p>';
+                    return;
+                }
+                let html = `<p>${dispos.length} créneau(x) disponible(s) :</p><p>`;
+                dispos.forEach(c => {
+                    html += `<button id="c-${c.id}" onclick="selectionner(${c.id},'${c.jour}','${c.heure}')">${c.heure}</button> `;
+                });
+                html += `</p><br><button id="btn-valider" onclick="reserver()" disabled>Valider</button>`;
+                document.getElementById('creneaux').innerHTML = html;
+            } catch (err) {
+                msg.textContent = 'Erreur lors du chargement des disponibilités.';
+            }
+        }
+
+        function selectionner(id, jour, heure){
+            if (creneauSelectionne){
+                const ancien = document.getElementById(`c-${creneauSelectionne.id}`);
+                if (ancien) ancien.style.fontWeight = 'normal';
+            }
+            creneauSelectionne = { id, jour, heure };
+            document.getElementById(`c-${id}`).style.fontWeight = 'bold';
+            document.getElementById('btn-valider').disabled = false;
+        }
+
+        async function reserver(){
+            const msg = document.getElementById('message');
+            try {
+                const response = await fetch(`/rdv/patients/${utilisateur.id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        medecinId: String(medecin.id),
+                        jour: creneauSelectionne.jour,
+                        heure: creneauSelectionne.heure
+                    })
+                });
+                if (response.ok){
+                    msg.textContent = `RDV demandé le ${creneauSelectionne.jour} à ${creneauSelectionne.heure}. En attente de validation.`;
+                    document.getElementById('creneaux').innerHTML = '';
+                    creneauSelectionne = null;
+                } else {
+                    const data = await response.json();
+                    msg.textContent = data.message || 'Erreur lors de la réservation.';
+                }
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+            }
+        }
+    </script>
+</body>
+</html>
