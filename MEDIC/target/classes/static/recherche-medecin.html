@@ -2,28 +2,22 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>MEDIC - Accueil</title>
+    <title>MEDIC — Rechercher un médecin</title>
 </head>
 <body>
-    <h1>Accueil</h1>
-    <p id="bienvenue"></p>
-    <nav>
-        <a href="/patient.html">Mes informations</a> |
-        <a href="/" onclick="deconnexion()">Se déconnecter</a>
-    </nav>
+    <h1>Rechercher un médecin</h1>
 
-    <hr>
-
-    <h2>Rechercher un médecin</h2>
     <form id="form-recherche">
         <input type="search" id="recherche" placeholder="Nom, prénom ou spécialité...">
         <button type="submit">Rechercher</button>
     </form>
+
     <div id="resultats"></div>
 
     <div id="rdv-section" style="display:none">
         <hr>
-        <h3>Prendre RDV avec <span id="rdv-nom-medecin"></span></h3>
+        <h2>Prendre RDV avec <span id="rdv-nom-medecin"></span></h2>
+
         <label>Jour :</label>
         <select id="rdv-jour">
             <option value="">-- Sélectionner un jour --</option>
@@ -32,21 +26,17 @@
         </select>
         <button onclick="voirDispos()">Voir les disponibilités</button>
         <button onclick="fermerRdv()">Annuler</button>
+
         <div id="rdv-creneaux"></div>
         <p id="rdv-message"></p>
     </div>
 
-    <hr>
-
-    <h2>Mes rendez-vous</h2>
-    <div id="liste-rdv"></div>
-    <p id="message-rdv"></p>
+    <br><button onclick="history.back()">Retour</button>
 
     <script src="/auth.js"></script>
     <script>
         const utilisateur = getUtilisateur();
         verifierPatient(utilisateur);
-        document.getElementById('bienvenue').textContent = `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
         let medecinSelectionne = null;
         let creneauSelectionne = null;
@@ -136,7 +126,6 @@
                     msg.textContent = `RDV demandé le ${creneauSelectionne.jour} à ${creneauSelectionne.heure}. En attente de validation.`;
                     document.getElementById('rdv-creneaux').innerHTML = '';
                     creneauSelectionne = null;
-                    chargerRdv();
                 } else {
                     const data = await response.json();
                     msg.textContent = data.message || 'Erreur lors de la réservation.';
@@ -145,47 +134,6 @@
                 msg.textContent = 'Erreur de connexion au serveur.';
             }
         }
-
-        async function chargerRdv(){
-            const div = document.getElementById('liste-rdv');
-            try {
-                const rdvs = await fetch(`/rdv/patients/${utilisateur.id}`).then(r => r.json());
-                if (rdvs.length === 0){ div.innerHTML = '<p>Aucun rendez-vous.</p>'; return; }
-                let html = '<ul>';
-                rdvs.forEach(rdv => {
-                    const statut = rdv.valide ? 'Confirmé' : 'En attente de validation';
-                    html += `<li id="rdv-${rdv.id}">
-                        Dr ${rdv.medecin.nom} ${rdv.medecin.prenom} (${rdv.medecin.specialite})
-                        — ${rdv.jour} à ${rdv.heure} — <em>${statut}</em>
-                        <button onclick="annulerRdv(${rdv.id}, '${rdv.jour}', '${rdv.heure}', this)">Annuler</button>
-                    </li>`;
-                });
-                html += '</ul>';
-                div.innerHTML = html;
-            } catch (err) {
-                div.textContent = 'Erreur lors du chargement.';
-            }
-        }
-
-        async function annulerRdv(rdvId, jour, heure, btn){
-            btn.disabled = true;
-            const msg = document.getElementById('message-rdv');
-            try {
-                const response = await fetch(`/rdv/${rdvId}/patients/${utilisateur.id}`, { method: 'DELETE' });
-                if (response.ok){
-                    document.getElementById(`rdv-${rdvId}`).remove();
-                    msg.textContent = `RDV du ${jour} à ${heure} annulé.`;
-                } else {
-                    msg.textContent = 'Impossible d\'annuler ce rendez-vous.';
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                msg.textContent = 'Erreur de connexion au serveur.';
-                btn.disabled = false;
-            }
-        }
-
-        chargerRdv();
     </script>
 </body>
 </html>

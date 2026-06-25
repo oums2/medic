@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC — Mon planning</title>
+</head>
+<body>
+    <h1>Mon planning</h1>
+
+    <div id="liste"></div>
+    <p id="message"></p>
+
+    <br><button onclick="history.back()">Retour</button>
+
+    <script src="/auth.js"></script>
+    <script>
+        const utilisateur = getUtilisateur();
+        verifierMedecin(utilisateur);
+
+        async function chargerPlanning(){
+            const div = document.getElementById('liste');
+            try {
+                const rdvs = await fetch(`/rdv/medecins/${utilisateur.id}`).then(r => r.json());
+                if (rdvs.length === 0){ div.innerHTML = '<p>Aucun rendez-vous confirmé.</p>'; return; }
+                let html = '<ul>';
+                rdvs.forEach(rdv => {
+                    html += `<li id="rdv-${rdv.id}">
+                        ${rdv.patient.nom} ${rdv.patient.prenom}
+                        — ${rdv.jour} à ${rdv.heure}
+                        <button onclick="annulerRdv(${rdv.id}, '${rdv.jour}', '${rdv.heure}', this)">Annuler</button>
+                    </li>`;
+                });
+                html += '</ul>';
+                div.innerHTML = html;
+            } catch (err) {
+                div.textContent = 'Erreur lors du chargement.';
+            }
+        }
+
+        async function annulerRdv(rdvId, jour, heure, btn){
+            btn.disabled = true;
+            const msg = document.getElementById('message');
+            try {
+                const response = await fetch(`/rdv/${rdvId}/medecins/${utilisateur.id}`, { method: 'DELETE' });
+                if (response.ok){
+                    document.getElementById(`rdv-${rdvId}`).remove();
+                    msg.textContent = `RDV du ${jour} à ${heure} annulé.`;
+                } else {
+                    msg.textContent = 'Impossible d\'annuler ce rendez-vous.';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+                btn.disabled = false;
+            }
+        }
+
+        chargerPlanning();
+    </script>
+</body>
+</html>

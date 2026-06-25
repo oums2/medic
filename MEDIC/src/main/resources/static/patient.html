@@ -14,40 +14,10 @@
         <p>Adresse : <span id="adresse"></span></p>
         <p>Téléphone : <span id="numero"></span></p>
 
-        <button onclick="afficherFormulaire()">Modifier mes informations</button>
+        <button onclick="window.location.href='/modifier-profil.html'">Modifier mes informations</button>
 
-        <!-- peut etre en faire une autre page car sinon trop d'information pas fan du format -->
-        <div id="form-modif" style="display:none">
-            <hr>
-            <h2>Modifier mes informations</h2>
-
-            <label>Nom :</label><br>
-            <input type="text" id="m-nom"><br><br>
-
-            <label>Prénom :</label><br>
-            <input type="text" id="m-prenom"><br><br>
-
-            <label>Email :</label><br>
-            <input type="email" id="m-email"><br><br>
-
-            <label>Nouveau mot de passe (laisser vide pour ne pas changer) :</label><br>
-            <input type="password" id="m-motDePasse"><br><br>
-
-            <label>Adresse :</label><br>
-            <input type="text" id="m-adresse"><br><br>
-
-            <label>Téléphone :</label><br>
-            <input type="text" id="m-numero"><br><br>
-
-            <button onclick="enregistrer()">Enregistrer</button>
-            <button onclick="annuler()">Annuler</button>
-
-            <p id="message"></p>
-        </div>
-
-        <br>
+        <br><br>
         <a href="/" onclick="deconnexion()">Se déconnecter</a>
-
         <br>
         <button onclick="history.back()">Retour</button>
 
@@ -60,68 +30,6 @@
             document.getElementById('email').textContent   = utilisateur.email;
             document.getElementById('adresse').textContent = utilisateur.adresse;
             document.getElementById('numero').textContent  = utilisateur.numero;
-
-            function afficherFormulaire(){
-                document.getElementById('m-nom').value     = utilisateur.nom;
-                document.getElementById('m-prenom').value  = utilisateur.prenom;
-                document.getElementById('m-email').value   = utilisateur.email;
-                document.getElementById('m-adresse').value = utilisateur.adresse || '';
-                document.getElementById('m-numero').value  = utilisateur.numero || '';
-                document.getElementById('m-motDePasse').value = '';
-                document.getElementById('message').textContent = '';
-                document.getElementById('form-modif').style.display = 'block';
-            }
-
-            function annuler(){
-                document.getElementById('form-modif').style.display = 'none';
-            }
-
-            async function enregistrer(){
-                const msg = document.getElementById('message');
-                const body = {};
-
-                const nom     = document.getElementById('m-nom').value.trim();
-                const prenom  = document.getElementById('m-prenom').value.trim();
-                const email   = document.getElementById('m-email').value.trim();
-                const mdp     = document.getElementById('m-motDePasse').value;
-                const adresse = document.getElementById('m-adresse').value.trim();
-                const numero  = document.getElementById('m-numero').value.trim();
-
-                if (nom)     body.nom        = nom;
-                if (prenom)  body.prenom     = prenom;
-                if (email)   body.email      = email;
-                if (mdp)     body.motDePasse = mdp;
-                if (adresse) body.adresse    = adresse;
-                if (numero)  body.numero     = numero;
-
-                try {
-                    const response = await fetch(`/patients/${utilisateur.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(body)
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok){
-                        const majUtilisateur = { ...utilisateur, ...data };
-                        localStorage.setItem('utilisateur', JSON.stringify(majUtilisateur));
-
-                        document.getElementById('nom').textContent     = data.nom;
-                        document.getElementById('prenom').textContent  = data.prenom;
-                        document.getElementById('email').textContent   = data.email;
-                        document.getElementById('adresse').textContent = data.adresse;
-                        document.getElementById('numero').textContent  = data.numero;
-
-                        msg.textContent = 'Informations mises à jour.';
-                        document.getElementById('form-modif').style.display = 'none';
-                    } else {
-                        msg.textContent = data.message || 'Erreur lors de la mise à jour.';
-                    }
-                } catch (err) {
-                    msg.textContent = 'Erreur de connexion au serveur.';
-                }
-            }
         </script>
     </body>
 </html>

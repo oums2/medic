@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC — Créer un utilisateur</title>
+</head>
+<body>
+    <h1>Créer un utilisateur</h1>
+
+    <label>Type :</label>
+    <select id="type" onchange="afficherFormulaire()">
+        <option value="">-- Sélectionner --</option>
+        <option value="patient">Patient</option>
+        <option value="medecin">Médecin</option>
+        <option value="admin">Administrateur</option>
+    </select>
+
+    <div id="formulaire" style="display:none">
+        <br>
+        <label>Nom :</label><br>
+        <input type="text" id="nom"><br><br>
+
+        <label>Prénom :</label><br>
+        <input type="text" id="prenom"><br><br>
+
+        <label>Email :</label><br>
+        <input type="email" id="email"><br><br>
+
+        <label>Mot de passe :</label><br>
+        <input type="password" id="motDePasse"><br><br>
+
+        <div id="champs-patient" style="display:none">
+            <label>Adresse :</label><br>
+            <input type="text" id="adresse"><br><br>
+
+            <label>Téléphone :</label><br>
+            <input type="text" id="numero"><br><br>
+        </div>
+
+        <div id="champs-medecin" style="display:none">
+            <label>Spécialité :</label><br>
+            <select id="specialite">
+                <option value="">-- Sélectionner --</option>
+                <option>Médecine générale</option>
+                <option>Cardiologie</option>
+                <option>Dermatologie</option>
+                <option>Dentiste</option>
+                <option>Gynécologie</option>
+                <option>Neurologie</option>
+                <option>Ophtalmologie</option>
+                <option>Pédiatrie</option>
+                <option>Pneumologie</option>
+                <option>Psychiatrie</option>
+                <option>Radiologie</option>
+                <option>Rhumatologie</option>
+            </select><br><br>
+        </div>
+
+        <button onclick="creer()">Créer</button>
+    </div>
+
+    <p id="message"></p>
+
+    <br><button onclick="history.back()">Retour</button>
+
+    <script src="/auth.js"></script>
+    <script>
+        const admin = getUtilisateur();
+        verifierAdmin(admin);
+
+        function afficherFormulaire(){
+            const type = document.getElementById('type').value;
+            document.getElementById('formulaire').style.display = type ? 'block' : 'none';
+            document.getElementById('champs-patient').style.display = type === 'patient' ? 'block' : 'none';
+            document.getElementById('champs-medecin').style.display = type === 'medecin' ? 'block' : 'none';
+            document.getElementById('message').textContent = '';
+        }
+
+        async function creer(){
+            const type  = document.getElementById('type').value;
+            const msg   = document.getElementById('message');
+            const body  = {
+                nom:        document.getElementById('nom').value.trim(),
+                prenom:     document.getElementById('prenom').value.trim(),
+                email:      document.getElementById('email').value.trim(),
+                motDePasse: document.getElementById('motDePasse').value
+            };
+
+            if (type === 'patient'){
+                body.adresse = document.getElementById('adresse').value.trim();
+                body.numero  = document.getElementById('numero').value.trim();
+            } else if (type === 'medecin'){
+                body.specialite = document.getElementById('specialite').value;
+            }
+
+            const urls = { patient: '/patients/inscription', medecin: '/medecins/inscription', admin: '/admin/inscription' };
+
+            try {
+                const response = await fetch(urls[type], {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (response.ok || response.status === 201){
+                    msg.textContent = `Utilisateur créé : ${data.prenom} ${data.nom}.`;
+                    document.getElementById('nom').value = '';
+                    document.getElementById('prenom').value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('motDePasse').value = '';
+                } else {
+                    msg.textContent = data.message || 'Erreur lors de la création.';
+                }
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+            }
+        }
+    </script>
+</body>
+</html>

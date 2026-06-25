@@ -76,6 +76,16 @@ public class RdvService {
                 .orElseThrow(() -> new RuntimeException("Rendez-vous introuvable."));
     }
 
+    @Transactional
+    public void annulerRdvById(int creneauId){
+        Creneau creneau = creneauRepo.findById(creneauId)
+                .orElseThrow(() -> new RuntimeException("Rendez-vous introuvable."));
+        creneau.setEstDispo(true);
+        creneau.setPatient(null);
+        creneau.setValide(false);
+        creneauRepo.save(creneau);
+    }
+
     // Retourne les patients distincts ayant un RDV confirmé avec ce médecin
     @Transactional
     public List<Patient> getPatientsduMedecin(Medecin medecin){

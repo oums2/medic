@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC — Mes patients</title>
+</head>
+<body>
+    <h1>Mes patients</h1>
+
+    <form id="form-recherche">
+        <input type="search" id="recherche" placeholder="Nom ou prénom...">
+        <button type="submit">Rechercher</button>
+    </form>
+
+    <div id="resultats"></div>
+
+    <br><button onclick="history.back()">Retour</button>
+
+    <script src="/auth.js"></script>
+    <script>
+        const utilisateur = getUtilisateur();
+        verifierMedecin(utilisateur);
+
+        document.getElementById('form-recherche').addEventListener('submit', function(e){
+            e.preventDefault();
+            rechercher();
+        });
+
+        async function rechercher(){
+            const valeur = document.getElementById('recherche').value.trim().toLowerCase();
+            const div = document.getElementById('resultats');
+            try {
+                const patients = await fetch(`/medecins/${utilisateur.id}/patients`).then(r => r.json());
+                const filtres = valeur
+                    ? patients.filter(p => p.nom.toLowerCase().includes(valeur) || p.prenom.toLowerCase().includes(valeur))
+                    : patients;
+                if (filtres.length === 0){ div.innerHTML = '<p>Aucun patient trouvé.</p>'; return; }
+                let html = `<p>${filtres.length} patient(s)</p><ul>`;
+                filtres.forEach(p => {
+                    html += `<li><strong>${p.nom} ${p.prenom}</strong> — ${p.email}</li>`;
+                });
+                html += '</ul>';
+                div.innerHTML = html;
+            } catch (err) {
+                div.textContent = 'Erreur lors du chargement.';
+            }
+        }
+
+        rechercher();
+    </script>
+</body>
+</html>

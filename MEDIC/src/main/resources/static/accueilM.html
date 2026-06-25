@@ -1,232 +1,171 @@
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <title>MEDIC - Accueil Medecin</title>
-    </head>
-    <body>
-        <h1>Accueil Medecin</h1>
-
-        <p id="bienvenue"></p>
-
-        <a href="/medecin.html" id="lien-espace">Mes informations</a> |
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC - Accueil Médecin</title>
+</head>
+<body>
+    <h1>Accueil Médecin</h1>
+    <p id="bienvenue"></p>
+    <nav>
+        <a href="/medecin.html">Mes informations</a> |
         <a href="/" onclick="deconnexion()">Se déconnecter</a>
+    </nav>
 
-        <hr>
+    <hr>
 
-        <h2>Rechercher un patient</h2>
+    <h2>Rechercher un patient</h2>
+    <form id="form-recherche">
+        <input type="search" id="recherche" placeholder="Nom ou prénom...">
+        <button type="submit">Rechercher</button>
+    </form>
+    <div id="resultats"></div>
 
-        <form id="form-recherche">
-            <label>Recherche :</label>
-            <input type="search" id="recherche" name="recherche" placeholder="recherche...">
-            <button type="submit">Rechercher</button>
-        </form>
+    <hr>
 
-        <div id="resultats"></div>
+    <h2>Rendez-vous à valider</h2>
+    <div id="liste-attente"></div>
+    <p id="message-attente"></p>
 
-        <hr>
+    <hr>
 
-        <h2>Rendez-vous à valider</h2>
-        <div id="rdv-en-attente"><p>Chargement...</p></div>
+    <h2>Mon planning</h2>
+    <div id="liste-planning"></div>
+    <p id="message-planning"></p>
 
-        <hr>
+    <script src="/auth.js"></script>
+    <script>
+        const utilisateur = getUtilisateur();
+        verifierMedecin(utilisateur);
+        document.getElementById('bienvenue').textContent = `Bienvenue Dr ${utilisateur.prenom} ${utilisateur.nom}`;
 
-        <h2>Mon planning</h2>
-        <div id="planning"><p>Chargement...</p></div>
+        document.getElementById('form-recherche').addEventListener('submit', function(e){
+            e.preventDefault();
+            rechercherPatient();
+        });
 
-        <script src="/auth.js"></script>
-        <script>
-            const utilisateur = getUtilisateur();
-            verifierMedecin(utilisateur);
-
-            document.getElementById('bienvenue').textContent =
-                `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
-
-            // Recherche selon la valeur saisie
-            async function rechercher(){
-                const valeur = document.getElementById('recherche').value.trim();
-
-                // Si champ vide, affiche tous les patients
-                if (!valeur){
-                    tousLesPatients();
-                    return;
-                }
-
-                try {
-                    // Recherche uniquement parmi les patients de ce médecin
-                    const response = await fetch(`/medecins/${utilisateur.id}/patients?q=${encodeURIComponent(valeur)}`);
-                    const resultats = await response.json();
-                    afficherResultats(resultats);
-                }catch (err){
-                    document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
-                }
-            }
-
-            // Charge tous les patients de ce médecin
-            async function tousLesPatients(){
-                try {
-                    const response = await fetch(`/medecins/${utilisateur.id}/patients`);
-                    const resultats = await response.json();
-                    afficherResultats(resultats);
-                }catch (err){
-                    document.getElementById('resultats').textContent = 'Erreur lors du chargement.';
-                }
-            }
-
-            // Affiche la liste des patients dans la page
-            function afficherResultats(patients){
-                const div = document.getElementById('resultats');
-
-                if (patients.length === 0){
-                    div.innerHTML = '<p>Aucun patient trouvé.</p>';
-                    return;
-                }
-
-                let html = `<p>${patients.length} patient(s) trouvé(s)</p><ul>`;
-                patients.forEach(p => {
-                    html += `<li><strong>${p.nom} ${p.prenom}</strong></li>`;
+        async function rechercherPatient(){
+            const valeur = document.getElementById('recherche').value.trim().toLowerCase();
+            const div = document.getElementById('resultats');
+            try {
+                const patients = await fetch(`/medecins/${utilisateur.id}/patients`).then(r => r.json());
+                const filtres = valeur
+                    ? patients.filter(p => p.nom.toLowerCase().includes(valeur) || p.prenom.toLowerCase().includes(valeur))
+                    : patients;
+                if (filtres.length === 0){ div.innerHTML = '<p>Aucun patient trouvé.</p>'; return; }
+                let html = `<p>${filtres.length} patient(s)</p><ul>`;
+                filtres.forEach(p => {
+                    html += `<li><strong>${p.nom} ${p.prenom}</strong> — ${p.email}</li>`;
                 });
                 html += '</ul>';
                 div.innerHTML = html;
+            } catch (err) {
+                div.textContent = 'Erreur lors du chargement.';
             }
+        }
 
-            // Charge et affiche le planning du médecin (créneaux réservés)
-            async function chargerPlanning(){
-                const div = document.getElementById('planning');
-                try {
-                    const response = await fetch(`/medecins/${utilisateur.id}/planning`);
-                    const creneaux = await response.json();
+        async function chargerEnAttente(){
+            const div = document.getElementById('liste-attente');
+            try {
+                const rdvs = await fetch(`/medecins/${utilisateur.id}/rdv-en-attente`).then(r => r.json());
+                if (rdvs.length === 0){ div.innerHTML = '<p>Aucun rendez-vous en attente.</p>'; return; }
+                let html = '<ul>';
+                rdvs.forEach(rdv => {
+                    html += `<li id="rdv-att-${rdv.id}">
+                        ${rdv.patient.nom} ${rdv.patient.prenom}
+                        — ${rdv.jour} à ${rdv.heure}
+                        <button onclick="validerRdv(${rdv.id}, ${rdv.patient.id}, '${rdv.patient.nom}', '${rdv.patient.prenom}', '${rdv.jour}', '${rdv.heure}', this)">Valider</button>
+                        <button onclick="refuserRdv(${rdv.id}, this)">Refuser</button>
+                    </li>`;
+                });
+                html += '</ul>';
+                div.innerHTML = html;
+            } catch (err) {
+                div.textContent = 'Erreur lors du chargement.';
+            }
+        }
 
-                    if (creneaux.length === 0){
-                        div.innerHTML = '<p>Aucun rendez-vous prévu.</p>';
-                        return;
-                    }
-
-                    let html = '<ul>';
-                    creneaux.forEach(c => {
-                        html += `<li>
-                            ${c.jour} à ${c.heure}
-                            — ${c.patient.prenom} ${c.patient.nom}
-                            <button onclick="annulerRdv(${c.patient.id}, '${c.jour}', '${c.heure}', this)">Annuler</button>
-                        </li>`;
-                    });
-                    html += '</ul>';
-                    div.innerHTML = html;
-                } catch (err) {
-                    div.textContent = 'Erreur lors du chargement du planning.';
+        async function validerRdv(rdvId, patientId, nomPatient, prenomPatient, jour, heure, btn){
+            btn.disabled = true;
+            const msg = document.getElementById('message-attente');
+            try {
+                const response = await fetch(`/medecins/${utilisateur.id}/valider-rdv`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ patientId: String(patientId), jour, heure })
+                });
+                if (response.ok){
+                    document.getElementById(`rdv-att-${rdvId}`).remove();
+                    msg.textContent = `RDV de ${nomPatient} ${prenomPatient} confirmé.`;
+                    chargerPlanning();
+                } else {
+                    msg.textContent = 'Erreur lors de la validation.';
+                    btn.disabled = false;
                 }
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+                btn.disabled = false;
             }
+        }
 
-            // Annule un rendez-vous
-            async function annulerRdv(patientId, jour, heure, bouton){
-                if (!confirm(`Annuler le RDV du ${jour} à ${heure} ?`)) return;
-
-                try {
-                    const response = await fetch('/rdv', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            patientId: String(patientId),
-                            medecinId: String(utilisateur.id),
-                            jour: jour,
-                            heure: heure
-                        })
-                    });
-
-                    if (response.ok){
-                        bouton.closest('li').remove();
-                        const liste = document.getElementById('planning');
-                        if (!liste.querySelector('li')){
-                            liste.innerHTML = '<p>Aucun rendez-vous prévu.</p>';
-                        }
-                    } else {
-                        alert('Erreur lors de l\'annulation.');
-                    }
-                } catch (err) {
-                    alert('Erreur de connexion au serveur.');
+        async function refuserRdv(rdvId, btn){
+            btn.disabled = true;
+            const msg = document.getElementById('message-attente');
+            try {
+                const response = await fetch(`/rdv/${rdvId}/medecins/${utilisateur.id}`, { method: 'DELETE' });
+                if (response.ok){
+                    document.getElementById(`rdv-att-${rdvId}`).remove();
+                    msg.textContent = 'Rendez-vous refusé.';
+                } else {
+                    msg.textContent = 'Erreur lors du refus.';
+                    btn.disabled = false;
                 }
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+                btn.disabled = false;
             }
+        }
 
-            // Charge les RDV en attente de validation
-            async function chargerEnAttente(){
-                const div = document.getElementById('rdv-en-attente');
-                try {
-                    const response = await fetch(`/medecins/${utilisateur.id}/rdv-en-attente`);
-                    const creneaux = await response.json();
+        async function chargerPlanning(){
+            const div = document.getElementById('liste-planning');
+            try {
+                const rdvs = await fetch(`/medecins/${utilisateur.id}/planning`).then(r => r.json());
+                if (rdvs.length === 0){ div.innerHTML = '<p>Aucun rendez-vous confirmé.</p>'; return; }
+                let html = '<ul>';
+                rdvs.forEach(rdv => {
+                    html += `<li id="rdv-pl-${rdv.id}">
+                        ${rdv.patient.nom} ${rdv.patient.prenom}
+                        — ${rdv.jour} à ${rdv.heure}
+                        <button onclick="annulerRdv(${rdv.id}, '${rdv.jour}', '${rdv.heure}', this)">Annuler</button>
+                    </li>`;
+                });
+                html += '</ul>';
+                div.innerHTML = html;
+            } catch (err) {
+                div.textContent = 'Erreur lors du chargement.';
+            }
+        }
 
-                    if (creneaux.length === 0){
-                        div.innerHTML = '<p>Aucun rendez-vous en attente.</p>';
-                        return;
-                    }
-
-                    let html = '<ul>';
-                    creneaux.forEach(c => {
-                        html += `<li id="attente-${c.id}">
-                            ${c.jour} à ${c.heure}
-                            — ${c.patient.prenom} ${c.patient.nom}
-                            <button onclick="validerRdv(${c.patient.id}, '${c.jour}', '${c.heure}', ${c.id})">Valider</button>
-                            <button onclick="refuserRdv(${c.patient.id}, '${c.jour}', '${c.heure}', ${c.id})">Refuser</button>
-                        </li>`;
-                    });
-                    html += '</ul>';
-                    div.innerHTML = html;
-                } catch (err) {
-                    div.textContent = 'Erreur lors du chargement.';
+        async function annulerRdv(rdvId, jour, heure, btn){
+            btn.disabled = true;
+            const msg = document.getElementById('message-planning');
+            try {
+                const response = await fetch(`/rdv/${rdvId}/medecins/${utilisateur.id}`, { method: 'DELETE' });
+                if (response.ok){
+                    document.getElementById(`rdv-pl-${rdvId}`).remove();
+                    msg.textContent = `RDV du ${jour} à ${heure} annulé.`;
+                } else {
+                    msg.textContent = 'Impossible d\'annuler ce rendez-vous.';
+                    btn.disabled = false;
                 }
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+                btn.disabled = false;
             }
+        }
 
-            // Valide un RDV en attente
-            async function validerRdv(patientId, jour, heure, creneauId){
-                try {
-                    const response = await fetch(`/medecins/${utilisateur.id}/valider-rdv`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ patientId: String(patientId), jour, heure })
-                    });
-                    if (response.ok){
-                        document.getElementById(`attente-${creneauId}`).remove();
-                        chargerPlanning();
-                    } else {
-                        alert('Erreur lors de la validation.');
-                    }
-                } catch (err) {
-                    alert('Erreur de connexion au serveur.');
-                }
-            }
-
-            // Refuse un RDV (annulation côté médecin)
-            async function refuserRdv(patientId, jour, heure, creneauId){
-                if (!confirm(`Refuser le RDV du ${jour} à ${heure} ?`)) return;
-                try {
-                    const response = await fetch('/rdv', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            patientId: String(patientId),
-                            medecinId: String(utilisateur.id),
-                            jour, heure
-                        })
-                    });
-                    if (response.ok){
-                        document.getElementById(`attente-${creneauId}`).remove();
-                    } else {
-                        alert('Erreur lors du refus.');
-                    }
-                } catch (err) {
-                    alert('Erreur de connexion au serveur.');
-                }
-            }
-
-            chargerEnAttente();
-            chargerPlanning();
-
-            // Soumission du formulaire de recherche
-            document.getElementById('form-recherche').addEventListener('submit', function(e) {
-                e.preventDefault();
-                rechercher();
-            });
-
-            //tousLesPatients();
-        </script>
-    </body>
+        chargerEnAttente();
+        chargerPlanning();
+    </script>
+</body>
 </html>
