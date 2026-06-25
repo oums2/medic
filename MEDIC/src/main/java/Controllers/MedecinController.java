@@ -3,6 +3,7 @@ package Controllers;
 import Entities.Creneau;
 import Entities.Medecin;
 import Entities.Patient;
+import Repositories.CreneauRepository;
 import Repositories.MedecinRepository;
 import Repositories.PatientRepository;
 import Services.InscriptionService;
@@ -24,11 +25,13 @@ public class MedecinController {
     private final RdvService rdvService;
     private final MedecinRepository medecinRepo;
     private final PatientRepository patientRepo;
+    private final CreneauRepository creneauRepo;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    MedecinController(MedecinRepository medecinRepo, PatientRepository patientRepo, RdvService rdvService, InscriptionService inscriptionService, BCryptPasswordEncoder passwordEncoder){
+    MedecinController(MedecinRepository medecinRepo, PatientRepository patientRepo, CreneauRepository creneauRepo, RdvService rdvService, InscriptionService inscriptionService, BCryptPasswordEncoder passwordEncoder){
         this.medecinRepo = medecinRepo;
         this.patientRepo = patientRepo;
+        this.creneauRepo = creneauRepo;
         this.rdvService = rdvService;
         this.inscriptionService = inscriptionService;
         this.passwordEncoder = passwordEncoder;
@@ -109,6 +112,27 @@ public class MedecinController {
         Medecin medecin = medecinRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medecin introuvable"));
         return rdvService.getPlanningMedecin(medecin);
+    }
+
+    @GetMapping("/{id}/creneaux") // Tous les créneaux du médecin
+    public List<Creneau> getCreneaux(@PathVariable int id){
+        Medecin medecin = medecinRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
+        return creneauRepo.findByMedecin(medecin);
+    }
+
+    @PostMapping("/{id}/creneaux") // Ajoute un créneau au médecin
+    @ResponseStatus(HttpStatus.CREATED)
+    public Creneau ajouterCreneau(@PathVariable int id, @RequestBody Map<String, String> body){
+        Medecin medecin = medecinRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
+        return creneauRepo.save(new Creneau(body.get("jour"), body.get("heure"), medecin));
+    }
+
+    @DeleteMapping("/{id}/creneaux/{creneauId}") // Supprime un créneau
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void supprimerCreneau(@PathVariable int id, @PathVariable int creneauId){
+        creneauRepo.deleteById(creneauId);
     }
 
 }

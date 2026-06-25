@@ -14,6 +14,65 @@
 
     <hr>
 
+    <!-- Création d'utilisateur -->
+    <h2>Créer un utilisateur</h2>
+
+    <label>Type :</label>
+    <select id="type-creation" onchange="afficherFormCreation()">
+        <option value="">-- Choisir --</option>
+        <option value="patient">Patient</option>
+        <option value="medecin">Médecin</option>
+        <option value="admin">Administrateur</option>
+    </select>
+
+    <div id="form-creation" style="display:none">
+
+        <div id="champs-patient" style="display:none">
+            <br><label>Nom :</label> <input type="text" id="c-nom">
+            <label>Prénom :</label> <input type="text" id="c-prenom">
+            <label>Email :</label> <input type="email" id="c-email">
+            <label>Mot de passe :</label> <input type="password" id="c-mdp">
+            <label>Adresse :</label> <input type="text" id="c-adresse">
+            <label>Téléphone :</label> <input type="text" id="c-numero">
+        </div>
+
+        <div id="champs-medecin" style="display:none">
+            <br><label>Nom :</label> <input type="text" id="cm-nom">
+            <label>Prénom :</label> <input type="text" id="cm-prenom">
+            <label>Email :</label> <input type="email" id="cm-email">
+            <label>Mot de passe :</label> <input type="password" id="cm-mdp">
+            <label>Spécialité :</label>
+            <select id="cm-specialite">
+                <option value="">-- Choisir --</option>
+                <option>Médecine générale</option>
+                <option>Cardiologie</option>
+                <option>Dermatologie</option>
+                <option>Dentiste</option>
+                <option>Gynécologie</option>
+                <option>Neurologie</option>
+                <option>Ophtalmologie</option>
+                <option>Pédiatrie</option>
+                <option>Pneumologie</option>
+                <option>Psychiatrie</option>
+                <option>Radiologie</option>
+                <option>Rhumatologie</option>
+            </select>
+        </div>
+
+        <div id="champs-admin" style="display:none">
+            <br><label>Nom :</label> <input type="text" id="ca-nom">
+            <label>Prénom :</label> <input type="text" id="ca-prenom">
+            <label>Email :</label> <input type="email" id="ca-email">
+            <label>Mot de passe :</label> <input type="password" id="ca-mdp">
+        </div>
+
+        <br><button onclick="creerUtilisateur()">Créer</button>
+        <span id="msg-creation"></span>
+    </div>
+
+    <hr>
+
+    <!-- Recherche -->
     <h2>Rechercher un utilisateur</h2>
 
     <form id="form-recherche">
@@ -24,6 +83,47 @@
 
     <div id="resultats"></div>
 
+    <!-- Formulaire de modification (masqué) -->
+    <div id="form-modif" style="display:none">
+        <hr>
+        <h3 id="titre-modif"></h3>
+        <div id="champs-modif"></div>
+        <button onclick="enregistrerModif()">Enregistrer</button>
+        <button onclick="fermerModif()">Annuler</button>
+        <span id="msg-modif"></span>
+    </div>
+
+    <hr>
+
+    <!-- Gestion des créneaux -->
+    <h2>Gérer les créneaux d'un médecin</h2>
+
+    <label>Médecin :</label>
+    <select id="select-medecin" onchange="chargerCreneaux()">
+        <option value="">-- Sélectionner un médecin --</option>
+    </select>
+
+    <div id="section-creneaux" style="display:none">
+        <h3>Créneaux existants</h3>
+        <div id="liste-creneaux"></div>
+
+        <h3>Ajouter un créneau</h3>
+        <label>Jour :</label>
+        <select id="nouveau-jour">
+            <option value="">-- Jour --</option>
+            <option>Lundi</option>
+            <option>Mardi</option>
+            <option>Mercredi</option>
+            <option>Jeudi</option>
+            <option>Vendredi</option>
+            <option>Samedi</option>
+        </select>
+        <label>Heure :</label>
+        <input type="time" id="nouvelle-heure">
+        <button onclick="ajouterCreneau()">Ajouter</button>
+        <span id="msg-creneau"></span>
+    </div>
+
     <script src="/auth.js"></script>
     <script>
         const utilisateur = getUtilisateur();
@@ -32,98 +132,288 @@
         document.getElementById('bienvenue').textContent =
             `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
-        // Recherche dans médecins et patients simultanément
-        async function rechercher() {
-            const valeur = document.getElementById('recherche').value.trim();
-            const div = document.getElementById('resultats');
+        // Charge la liste des médecins dans le select créneaux
+        async function chargerListeMedecins(){
+            const select = document.getElementById('select-medecin');
+            const medecins = await fetch('/medecins/recherche').then(r => r.json());
+            medecins.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = `Dr ${m.nom} ${m.prenom} — ${m.specialite}`;
+                select.appendChild(opt);
+            });
+        }
+        chargerListeMedecins();
+
+        // ── CRÉATION ─────────────────────────────────────────────
+
+        function afficherFormCreation(){
+            const type = document.getElementById('type-creation').value;
+            document.getElementById('champs-patient').style.display = type === 'patient' ? 'block' : 'none';
+            document.getElementById('champs-medecin').style.display = type === 'medecin' ? 'block' : 'none';
+            document.getElementById('champs-admin').style.display   = type === 'admin'   ? 'block' : 'none';
+            document.getElementById('form-creation').style.display  = type ? 'block' : 'none';
+            document.getElementById('msg-creation').textContent = '';
+        }
+
+        async function creerUtilisateur(){
+            const type = document.getElementById('type-creation').value;
+            const msg  = document.getElementById('msg-creation');
+            let url, body;
+
+            if (type === 'patient'){
+                url  = '/patients/inscription';
+                body = {
+                    nom: document.getElementById('c-nom').value,
+                    prenom: document.getElementById('c-prenom').value,
+                    email: document.getElementById('c-email').value,
+                    motDePasse: document.getElementById('c-mdp').value,
+                    adresse: document.getElementById('c-adresse').value,
+                    numero: document.getElementById('c-numero').value
+                };
+            } else if (type === 'medecin'){
+                url  = '/medecins/inscription';
+                body = {
+                    nom: document.getElementById('cm-nom').value,
+                    prenom: document.getElementById('cm-prenom').value,
+                    email: document.getElementById('cm-email').value,
+                    motDePasse: document.getElementById('cm-mdp').value,
+                    specialite: document.getElementById('cm-specialite').value
+                };
+            } else if (type === 'admin'){
+                url  = '/admin/inscription';
+                body = {
+                    nom: document.getElementById('ca-nom').value,
+                    prenom: document.getElementById('ca-prenom').value,
+                    email: document.getElementById('ca-email').value,
+                    motDePasse: document.getElementById('ca-mdp').value
+                };
+            }
 
             try {
-                // Lance les deux recherches en parallèle
-                // Si champ vide, retourne tous les utilisateurs
-                const urlMedecins = valeur ? `/medecins/recherche?q=${encodeURIComponent(valeur)}` : '/medecins/recherche';
-                const urlPatients = valeur ? `/patients/recherche?q=${encodeURIComponent(valeur)}` : '/patients/recherche';
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                msg.textContent = response.ok
+                    ? `Compte créé avec succès.`
+                    : data.message || 'Erreur lors de la création.';
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+            }
+        }
 
-                const [resMedecins, resPatients] = await Promise.all([
-                    fetch(urlMedecins).then(r => r.json()),
-                    fetch(urlPatients).then(r => r.json())
+        // ── RECHERCHE ─────────────────────────────────────────────
+
+        async function rechercher(){
+            const valeur = document.getElementById('recherche').value.trim();
+            try {
+                const urlM = valeur ? `/medecins/recherche?q=${encodeURIComponent(valeur)}` : '/medecins/recherche';
+                const urlP = valeur ? `/patients/recherche?q=${encodeURIComponent(valeur)}` : '/patients/recherche';
+                const [medecins, patients] = await Promise.all([
+                    fetch(urlM).then(r => r.json()),
+                    fetch(urlP).then(r => r.json())
                 ]);
-
-                afficherResultats(resMedecins, resPatients);
+                afficherResultats(medecins, patients);
             } catch (err) {
                 document.getElementById('resultats').textContent = 'Erreur lors de la recherche.';
             }
         }
 
-        // Affiche les résultats séparés en médecins et patients
-        function afficherResultats(medecins, patients) {
+        function afficherResultats(medecins, patients){
             const div = document.getElementById('resultats');
-
-            if (medecins.length === 0 && patients.length === 0) {
+            if (medecins.length === 0 && patients.length === 0){
                 div.innerHTML = '<p>Aucun utilisateur trouvé.</p>';
                 return;
             }
-
             let html = '';
-
-            // Section médecins
-            if (medecins.length > 0) {
+            if (medecins.length > 0){
                 html += `<h3>Médecins (${medecins.length})</h3><ul>`;
                 medecins.forEach(m => {
                     html += `<li id="medecin-${m.id}">
-                        <strong>Dr ${m.nom} ${m.prenom}</strong> — ${m.specialite || 'Spécialité non renseignée'}
+                        <strong>Dr ${m.nom} ${m.prenom}</strong> — ${m.specialite || ''}
+                        <button onclick="ouvrirModifMedecin(${m.id},'${m.nom}','${m.prenom}','${m.email}','${m.specialite}')">Modifier</button>
                         <button onclick="supprimerMedecin(${m.id}, this)">Supprimer</button>
                     </li>`;
                 });
                 html += '</ul>';
             }
-
-            // Section patients
-            if (patients.length > 0) {
+            if (patients.length > 0){
                 html += `<h3>Patients (${patients.length})</h3><ul>`;
                 patients.forEach(p => {
                     html += `<li id="patient-${p.id}">
                         <strong>${p.nom} ${p.prenom}</strong>
+                        <button onclick="ouvrirModifPatient(${p.id},'${p.nom}','${p.prenom}','${p.email}','${p.adresse||''}','${p.numero||''}')">Modifier</button>
                         <button onclick="supprimerPatient(${p.id}, this)">Supprimer</button>
                     </li>`;
                 });
                 html += '</ul>';
             }
-
             div.innerHTML = html;
         }
 
-        // Supprime un médecin
+        // ── MODIFICATION ──────────────────────────────────────────
+
+        let modifType = null;
+        let modifId   = null;
+
+        function ouvrirModifMedecin(id, nom, prenom, email, specialite){
+            modifType = 'medecin'; modifId = id;
+            document.getElementById('titre-modif').textContent = `Modifier Dr ${nom} ${prenom}`;
+            document.getElementById('champs-modif').innerHTML = `
+                <label>Nom :</label> <input type="text" id="m-nom" value="${nom}"><br>
+                <label>Prénom :</label> <input type="text" id="m-prenom" value="${prenom}"><br>
+                <label>Email :</label> <input type="email" id="m-email" value="${email}"><br>
+                <label>Nouveau mot de passe :</label> <input type="password" id="m-mdp"><br>
+                <label>Spécialité :</label>
+                <select id="m-specialite">
+                    <option value="">-- Conserver --</option>
+                    <option>Médecine générale</option><option>Cardiologie</option>
+                    <option>Dermatologie</option><option>Dentiste</option>
+                    <option>Gynécologie</option><option>Neurologie</option>
+                    <option>Ophtalmologie</option><option>Pédiatrie</option>
+                    <option>Pneumologie</option><option>Psychiatrie</option>
+                    <option>Radiologie</option><option>Rhumatologie</option>
+                </select><br>`;
+            document.getElementById('msg-modif').textContent = '';
+            document.getElementById('form-modif').style.display = 'block';
+            document.getElementById('form-modif').scrollIntoView();
+        }
+
+        function ouvrirModifPatient(id, nom, prenom, email, adresse, numero){
+            modifType = 'patient'; modifId = id;
+            document.getElementById('titre-modif').textContent = `Modifier ${nom} ${prenom}`;
+            document.getElementById('champs-modif').innerHTML = `
+                <label>Nom :</label> <input type="text" id="m-nom" value="${nom}"><br>
+                <label>Prénom :</label> <input type="text" id="m-prenom" value="${prenom}"><br>
+                <label>Email :</label> <input type="email" id="m-email" value="${email}"><br>
+                <label>Nouveau mot de passe :</label> <input type="password" id="m-mdp"><br>
+                <label>Adresse :</label> <input type="text" id="m-adresse" value="${adresse}"><br>
+                <label>Téléphone :</label> <input type="text" id="m-numero" value="${numero}"><br>`;
+            document.getElementById('msg-modif').textContent = '';
+            document.getElementById('form-modif').style.display = 'block';
+            document.getElementById('form-modif').scrollIntoView();
+        }
+
+        function fermerModif(){ document.getElementById('form-modif').style.display = 'none'; }
+
+        async function enregistrerModif(){
+            const msg  = document.getElementById('msg-modif');
+            const body = {};
+            const nom    = document.getElementById('m-nom')?.value.trim();
+            const prenom = document.getElementById('m-prenom')?.value.trim();
+            const email  = document.getElementById('m-email')?.value.trim();
+            const mdp    = document.getElementById('m-mdp')?.value;
+            if (nom)    body.nom        = nom;
+            if (prenom) body.prenom     = prenom;
+            if (email)  body.email      = email;
+            if (mdp)    body.motDePasse = mdp;
+
+            let url;
+            if (modifType === 'medecin'){
+                const spe = document.getElementById('m-specialite')?.value;
+                if (spe) body.specialite = spe;
+                url = `/admin/medecins/${modifId}`;
+            } else {
+                const adresse = document.getElementById('m-adresse')?.value.trim();
+                const numero  = document.getElementById('m-numero')?.value.trim();
+                if (adresse) body.adresse = adresse;
+                if (numero)  body.numero  = numero;
+                url = `/admin/patients/${modifId}`;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                msg.textContent = response.ok ? 'Modifications enregistrées.' : data.message || 'Erreur.';
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+            }
+        }
+
+        // ── SUPPRESSION ───────────────────────────────────────────
+
         async function supprimerMedecin(id, bouton){
             if (!confirm('Supprimer ce médecin ?')) return;
-            try {
-                const response = await fetch(`/admin/medecins/${id}`, { method: 'DELETE' });
-                if (response.ok){
-                    bouton.closest('li').remove();
-                } else {
-                    alert('Erreur lors de la suppression.');
-                }
-            } catch (err) {
-                alert('Erreur de connexion au serveur.');
-            }
+            const r = await fetch(`/admin/medecins/${id}`, { method: 'DELETE' });
+            if (r.ok) bouton.closest('li').remove();
+            else alert('Erreur lors de la suppression.');
         }
 
-        // Supprime un patient
         async function supprimerPatient(id, bouton){
             if (!confirm('Supprimer ce patient ?')) return;
+            const r = await fetch(`/admin/patients/${id}`, { method: 'DELETE' });
+            if (r.ok) bouton.closest('li').remove();
+            else alert('Erreur lors de la suppression.');
+        }
+
+        // ── CRÉNEAUX ──────────────────────────────────────────────
+
+        async function chargerCreneaux(){
+            const medecinId = document.getElementById('select-medecin').value;
+            const section   = document.getElementById('section-creneaux');
+            if (!medecinId){ section.style.display = 'none'; return; }
+
+            section.style.display = 'block';
+            const creneaux = await fetch(`/medecins/${medecinId}/creneaux`).then(r => r.json());
+            const div = document.getElementById('liste-creneaux');
+
+            if (creneaux.length === 0){ div.innerHTML = '<p>Aucun créneau.</p>'; return; }
+
+            let html = '<ul>';
+            creneaux.forEach(c => {
+                const statut = c.estDispo ? 'Disponible' : (c.valide ? 'Confirmé' : 'En attente');
+                html += `<li id="creneau-${c.id}">
+                    ${c.jour} à ${c.heure} — <em>${statut}</em>
+                    <button onclick="supprimerCreneau(${c.id})">Supprimer</button>
+                </li>`;
+            });
+            html += '</ul>';
+            div.innerHTML = html;
+        }
+
+        async function ajouterCreneau(){
+            const medecinId = document.getElementById('select-medecin').value;
+            const jour      = document.getElementById('nouveau-jour').value;
+            const heure     = document.getElementById('nouvelle-heure').value;
+            const msg       = document.getElementById('msg-creneau');
+
+            if (!jour || !heure){ msg.textContent = 'Veuillez renseigner le jour et l\'heure.'; return; }
+
             try {
-                const response = await fetch(`/admin/patients/${id}`, { method: 'DELETE' });
+                const response = await fetch(`/medecins/${medecinId}/creneaux`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jour, heure })
+                });
                 if (response.ok){
-                    bouton.closest('li').remove();
+                    msg.textContent = 'Créneau ajouté.';
+                    chargerCreneaux();
                 } else {
-                    alert('Erreur lors de la suppression.');
+                    msg.textContent = 'Erreur lors de l\'ajout.';
                 }
             } catch (err) {
-                alert('Erreur de connexion au serveur.');
+                msg.textContent = 'Erreur de connexion au serveur.';
             }
         }
 
-        // Soumission du formulaire
-        document.getElementById('form-recherche').addEventListener('submit', function(e) {
+        async function supprimerCreneau(creneauId){
+            if (!confirm('Supprimer ce créneau ?')) return;
+            const medecinId = document.getElementById('select-medecin').value;
+            const r = await fetch(`/medecins/${medecinId}/creneaux/${creneauId}`, { method: 'DELETE' });
+            if (r.ok) chargerCreneaux();
+            else alert('Erreur lors de la suppression.');
+        }
+
+        // ── FORMULAIRE RECHERCHE ──────────────────────────────────
+
+        document.getElementById('form-recherche').addEventListener('submit', function(e){
             e.preventDefault();
             rechercher();
         });
