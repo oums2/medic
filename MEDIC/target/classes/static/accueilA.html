@@ -14,7 +14,6 @@
 
     <hr>
 
-    <!-- Création d'utilisateur -->
     <h2>Créer un utilisateur</h2>
 
     <label>Type :</label>
@@ -72,7 +71,6 @@
 
     <hr>
 
-    <!-- Recherche -->
     <h2>Rechercher un utilisateur</h2>
 
     <form id="form-recherche">
@@ -83,7 +81,6 @@
 
     <div id="resultats"></div>
 
-    <!-- Formulaire de modification (masqué) -->
     <div id="form-modif" style="display:none">
         <hr>
         <h3 id="titre-modif"></h3>
@@ -95,7 +92,6 @@
 
     <hr>
 
-    <!-- Gestion des créneaux -->
     <h2>Gérer les créneaux d'un médecin</h2>
 
     <label>Médecin :</label>
@@ -145,7 +141,7 @@
         }
         chargerListeMedecins();
 
-        // ── CRÉATION ─────────────────────────────────────────────
+        
 
         function afficherFormCreation(){
             const type = document.getElementById('type-creation').value;
@@ -205,7 +201,7 @@
             }
         }
 
-        // ── RECHERCHE ─────────────────────────────────────────────
+        
 
         async function rechercher(){
             const valeur = document.getElementById('recherche').value.trim();
@@ -254,7 +250,6 @@
             div.innerHTML = html;
         }
 
-        // ── MODIFICATION ──────────────────────────────────────────
 
         let modifType = null;
         let modifId   = null;
@@ -337,7 +332,6 @@
             }
         }
 
-        // ── SUPPRESSION ───────────────────────────────────────────
 
         async function supprimerMedecin(id, bouton){
             if (!confirm('Supprimer ce médecin ?')) return;
@@ -353,7 +347,6 @@
             else alert('Erreur lors de la suppression.');
         }
 
-        // ── CRÉNEAUX ──────────────────────────────────────────────
 
         async function chargerCreneaux(){
             const medecinId = document.getElementById('select-medecin').value;
@@ -410,8 +403,6 @@
             if (r.ok) chargerCreneaux();
             else alert('Erreur lors de la suppression.');
         }
-
-        // ── FORMULAIRE RECHERCHE ──────────────────────────────────
 
         document.getElementById('form-recherche').addEventListener('submit', function(e){
             e.preventDefault();
