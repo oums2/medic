@@ -55,7 +55,10 @@
                 if (filtres.length === 0){ div.innerHTML = '<p>Aucun patient trouvé.</p>'; return; }
                 let html = `<p>${filtres.length} patient(s)</p><ul>`;
                 filtres.forEach(p => {
-                    html += `<li><strong>${p.nom} ${p.prenom}</strong> — ${p.email}</li>`;
+                    html += `<li>
+                        <strong>${p.nom} ${p.prenom}</strong> — ${p.email}
+                        <button onclick="voirDossier(${JSON.stringify(p).replace(/"/g, '&quot;')})">Dossier</button>
+                    </li>`;
                 });
                 html += '</ul>';
                 div.innerHTML = html;
@@ -162,6 +165,11 @@
                 msg.textContent = 'Erreur de connexion au serveur.';
                 btn.disabled = false;
             }
+        }
+
+        function voirDossier(p){
+            localStorage.setItem('patient-selectionne', JSON.stringify(p));
+            window.location.href = '/dossier-patient.html';
         }
 
         chargerEnAttente();

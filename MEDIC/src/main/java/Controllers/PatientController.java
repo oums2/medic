@@ -34,7 +34,13 @@ public class PatientController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/recherche") // Recherche par nom, prénom 
+    @GetMapping("/{id}")
+    public Patient getById(@PathVariable int id){
+        return patientRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient introuvable"));
+    }
+
+    @GetMapping("/recherche") // Recherche par nom, prénom
     public List<Patient> rechercher(@RequestParam(required = false) String q) {
         if (q != null) return patientRepo
             .findByNomContainingIgnoreCaseOrPrenomContainingIgnoreCase(q, q);

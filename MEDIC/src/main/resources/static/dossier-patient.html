@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC — Dossier patient</title>
+</head>
+<body>
+    <h1>Dossier patient</h1>
+
+    <h2 id="nom-patient"></h2>
+    <p>Email : <span id="email"></span></p>
+    <p>Adresse : <span id="adresse"></span></p>
+    <p>Téléphone : <span id="numero"></span></p>
+
+    <hr>
+
+    <h2>Dossier médical</h2>
+    <div id="dossier-section">
+        <p>Antécédents : <span id="antecedents"></span></p>
+        <p>Traitements : <span id="traitements"></span></p>
+        <button onclick="afficherFormDossier()">Modifier le dossier</button>
+    </div>
+
+    <div id="form-dossier" style="display:none">
+        <label>Antécédents :</label><br>
+        <textarea id="input-antecedents" rows="3" cols="40"></textarea><br><br>
+        <label>Traitements :</label><br>
+        <textarea id="input-traitements" rows="3" cols="40"></textarea><br><br>
+        <button onclick="enregistrerDossier()">Enregistrer</button>
+        <button onclick="fermerFormDossier()">Annuler</button>
+    </div>
+
+    <p id="message-dossier"></p>
+
+    <hr>
+
+    <h2>Rendez-vous avec ce patient</h2>
+    <div id="liste-rdv"></div>
+
+    <br><button onclick="history.back()">Retour</button>
+
+    <script src="/auth.js"></script>
+    <script>
+        const medecin = getUtilisateur();
+        verifierMedecin(medecin);
+
+        const patient = JSON.parse(localStorage.getItem('patient-selectionne'));
+        if (!patient) window.location.href = '/accueilM.html';
+
+        document.getElementById('nom-patient').textContent = `${patient.nom} ${patient.prenom}`;
+        document.getElementById('email').textContent   = patient.email   || '—';
+        document.getElementById('adresse').textContent = patient.adresse || '—';
+        document.getElementById('numero').textContent  = patient.numero  || '—';
+
+        async function chargerDossier(){
+            try {
+                const dossier = await fetch(`/patients/${patient.id}/dossier`).then(r => r.json());
+                document.getElementById('antecedents').textContent = dossier.antecedents || 'Vide';
+                document.getElementById('traitements').textContent = dossier.traitements || 'Vide';
+            } catch (err) {
+                document.getElementById('dossier-section').textContent = 'Erreur lors du chargement du dossier.';
+            }
+        }
+
+        function afficherFormDossier(){
+            document.getElementById('input-antecedents').value = document.getElementById('antecedents').textContent;
+            document.getElementById('input-traitements').value = document.getElementById('traitements').textContent;
+            document.getElementById('form-dossier').style.display = 'block';
+            document.getElementById('message-dossier').textContent = '';
+        }
+
+        function fermerFormDossier(){
+            document.getElementById('form-dossier').style.display = 'none';
+        }
+
+        async function enregistrerDossier(){
+            const msg = document.getElementById('message-dossier');
+            const body = {
+                antecedents: document.getElementById('input-antecedents').value.trim(),
+                traitements: document.getElementById('input-traitements').value.trim()
+            };
+            try {
+                const response = await fetch(`/patients/${patient.id}/dossier`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (response.ok){
+                    document.getElementById('antecedents').textContent = body.antecedents;
+                    document.getElementById('traitements').textContent = body.traitements;
+                    fermerFormDossier();
+                    msg.textContent = 'Dossier mis à jour.';
+                } else {
+                    msg.textContent = 'Erreur lors de la mise à jour.';
+                }
+            } catch (err) {
+                msg.textContent = 'Erreur de connexion au serveur.';
+            }
+        }
+
+        async function chargerRdv(){
+            const div = document.getElementById('liste-rdv');
+            try {
+                const rdvs = await fetch(`/rdv/patients/${patient.id}`).then(r => r.json());
+                const rdvsMedecin = rdvs.filter(r => r.medecin.id === medecin.id);
+                if (rdvsMedecin.length === 0){ div.innerHTML = '<p>Aucun rendez-vous.</p>'; return; }
+                let html = '<ul>';
+                rdvsMedecin.forEach(rdv => {
+                    const statut = rdv.valide ? 'Confirmé' : 'En attente de validation';
+                    html += `<li>${rdv.jour} à ${rdv.heure} — <em>${statut}</em></li>`;
+                });
+                html += '</ul>';
+                div.innerHTML = html;
+            } catch (err) {
+                div.textContent = 'Erreur lors du chargement.';
+            }
+        }
+
+        chargerDossier();
+        chargerRdv();
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,8 +11,9 @@ public class DossierPatient {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // id se génére automatiquement
     private int id;
 
-    @OneToOne(fetch = FetchType.LAZY) // un patient à un seul dossier 
-    @JoinColumn(name = "patient_id", nullable = false, unique = true) // modification dans la colonne patient_id (clé étrangère)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_id", nullable = false, unique = true)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "motDePasse", "creneaux"})
     private Patient patient;
 
     private String traitements = "Vide";
