@@ -54,11 +54,29 @@ public class RdvService {
         return creneauRepo.findByPatient(patient);
     }
 
+    // Créneaux confirmés (planning)
     public List<Creneau> getPlanningMedecin(Medecin medecin){
-        return creneauRepo.findByMedecinAndEstDispoFalse(medecin);
+        return creneauRepo.findByMedecinAndEstDispoFalseAndValideTrue(medecin);
     }
 
-    // Retourne les patients distincts ayant un RDV avec ce médecin
+    // Créneaux en attente de validation
+    public List<Creneau> getRdvEnAttenteMedecin(Medecin medecin){
+        return creneauRepo.findByMedecinAndEstDispoFalseAndValideFalse(medecin);
+    }
+
+    @Transactional
+    public Creneau validerRdv(Medecin medecin, Patient patient, String jour, String heure){
+        return creneauRepo.findByPatient(patient).stream()
+                .filter(c -> c.getMedecin().equals(medecin)
+                        && c.getJour().equals(jour)
+                        && c.getHeure().equals(heure)
+                        && !c.isValide())
+                .findFirst()
+                .map(c -> { c.setValide(true); return creneauRepo.save(c); })
+                .orElseThrow(() -> new RuntimeException("Rendez-vous introuvable."));
+    }
+
+    // Retourne les patients distincts ayant un RDV confirmé avec ce médecin
     @Transactional
     public List<Patient> getPatientsduMedecin(Medecin medecin){
         return getPlanningMedecin(medecin).stream()

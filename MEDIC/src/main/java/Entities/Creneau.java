@@ -14,8 +14,11 @@ public class Creneau {
     private String jour;
     private String heure;
 
-    @Column(name = "est_dispo") // modification dans la colonne est_dispo
+    @Column(name = "est_dispo")
     private boolean estDispo = true;
+
+    // false = en attente de validation, true = confirmé par le médecin
+    private boolean valide = false;
 
     @ManyToOne(fetch = FetchType.LAZY) // peux y avoir plusieurs médecins
     @JoinColumn(name = "medecin_id", nullable = false) // modification dans la colonne medecin_id (clé étrangère)
@@ -71,10 +74,17 @@ public class Creneau {
         this.medecin = medecin; 
     }
 
-    public Patient getPatient(){ 
-        return patient; 
+    public Patient getPatient(){
+        return patient;
     }
-    public void setPatient(Patient patient){ 
-        this.patient = patient; 
+    public void setPatient(Patient patient){
+        this.patient = patient;
+    }
+
+    public boolean isValide(){
+        return valide;
+    }
+    public void setValide(boolean valide){
+        this.valide = valide;
     }
 }

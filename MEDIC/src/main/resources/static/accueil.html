@@ -237,9 +237,11 @@
 
                     let html = '<ul>';
                     rdvs.forEach(c => {
+                        const statut = c.valide ? 'Confirmé' : 'En attente de validation';
                         html += `<li>
                             ${c.jour} à ${c.heure}
                             — Dr ${c.medecin.prenom} ${c.medecin.nom} (${c.medecin.specialite})
+                            — <em>${statut}</em>
                             <button onclick="annulerRdv(${c.medecin.id}, '${c.jour}', '${c.heure}', this)">Annuler</button>
                         </li>`;
                     });

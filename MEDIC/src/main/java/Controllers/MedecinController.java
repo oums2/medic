@@ -4,6 +4,7 @@ import Entities.Creneau;
 import Entities.Medecin;
 import Entities.Patient;
 import Repositories.MedecinRepository;
+import Repositories.PatientRepository;
 import Services.InscriptionService;
 import Services.RdvService;
 
@@ -22,10 +23,12 @@ public class MedecinController {
     private final InscriptionService inscriptionService;
     private final RdvService rdvService;
     private final MedecinRepository medecinRepo;
+    private final PatientRepository patientRepo;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    MedecinController(MedecinRepository medecinRepo, RdvService rdvService, InscriptionService inscriptionService, BCryptPasswordEncoder passwordEncoder){
+    MedecinController(MedecinRepository medecinRepo, PatientRepository patientRepo, RdvService rdvService, InscriptionService inscriptionService, BCryptPasswordEncoder passwordEncoder){
         this.medecinRepo = medecinRepo;
+        this.patientRepo = patientRepo;
         this.rdvService = rdvService;
         this.inscriptionService = inscriptionService;
         this.passwordEncoder = passwordEncoder;
@@ -68,6 +71,22 @@ public class MedecinController {
         Medecin medecin = medecinRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medecin introuvable"));
         return rdvService.getDisposMedecin(medecin, jour);
+    }
+
+    @GetMapping("/{id}/rdv-en-attente") // Créneaux en attente de validation
+    public List<Creneau> getRdvEnAttente(@PathVariable int id){
+        Medecin medecin = medecinRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
+        return rdvService.getRdvEnAttenteMedecin(medecin);
+    }
+
+    @PutMapping("/{id}/valider-rdv") // Valide un RDV en attente
+    public Creneau validerRdv(@PathVariable int id, @RequestBody Map<String, String> body){
+        Medecin medecin = medecinRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
+        Patient patient = patientRepo.findById(Integer.parseInt(body.get("patientId")))
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient introuvable"));
+        return rdvService.validerRdv(medecin, patient, body.get("jour"), body.get("heure"));
     }
 
     @GetMapping("/{id}/patients") // Patients ayant un RDV avec ce médecin
