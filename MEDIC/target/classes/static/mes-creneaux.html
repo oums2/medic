@@ -1,105 +1,105 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>MEDIC — Mes créneaux</title>
-</head>
-<body>
-    <h1>Mes créneaux</h1>
+    <head>
+        <meta charset="UTF-8">
+        <title>MEDIC — Mes créneaux</title>
+    </head>
+    <body>
+        <h1>Mes créneaux</h1>
 
-    <h2>Ajouter un créneau</h2>
-    <label>Date :</label>
-    <input type="date" id="new-date">
-    <button onclick="ajouterCreneau()">Ajouter</button>
-    <p id="message-ajout"></p>
+        <h2>Ajouter un créneau</h2>
+        <label>Date :</label>
+        <input type="date" id="new-date">
+        <button onclick="ajouterCreneau()">Ajouter</button>
+        <p id="message-ajout"></p>
 
-    <hr>
+        <hr>
 
-    <h2>Mes créneaux</h2>
-    <div id="liste"></div>
-    <p id="message-liste"></p>
+        <h2>Mes créneaux</h2>
+        <div id="liste"></div>
+        <p id="message-liste"></p>
 
-    <br><button onclick="history.back()">Retour</button>
+        <br><button onclick="history.back()">Retour</button>
 
-    <script src="/auth.js"></script>
-    <script>
-        const utilisateur = getUtilisateur();
-        verifierMedecin(utilisateur);
+        <script src="/auth.js"></script>
+        <script>
+            const utilisateur = getUtilisateur();
+            verifierMedecin(utilisateur);
 
-        function formatDate(dateStr){
-            return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR',
-                { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-        }
-
-        async function chargerCreneaux(){
-            const div = document.getElementById('liste');
-            try {
-                const creneaux = await fetch(`/medecins/${utilisateur.id}/creneaux`).then(r => r.json());
-                if (creneaux.length === 0){ div.innerHTML = '<p>Aucun créneau.</p>'; return; }
-                let html = '<ul>';
-                creneaux.forEach(c => {
-                    let statut;
-                    if (c.estDispo)     statut = 'Disponible';
-                    else if (!c.valide) statut = 'En attente de validation';
-                    else                statut = 'Confirmé';
-                    html += `<li id="creneau-${c.id}">
-                        ${formatDate(c.jour)} — ${c.heure} — <em>${statut}</em>
-                        ${c.estDispo ? `<button onclick="supprimer(${c.id}, this)">Supprimer</button>` : ''}
-                    </li>`;
-                });
-                html += '</ul>';
-                div.innerHTML = html;
-            } catch (err) {
-                div.textContent = 'Erreur lors du chargement.';
+            function formatDate(dateStr){
+                return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR',
+                    { weekday:'long', day:'numeric', month:'long', year:'numeric' });
             }
-        }
 
-        const HEURES = ['09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00','18:00'];
-
-        async function ajouterCreneau(){
-            const date = document.getElementById('new-date').value;
-            const msg  = document.getElementById('message-ajout');
-
-            if (!date){ msg.textContent = 'Veuillez choisir une date.'; return; }
-
-            const jourSem = new Date(date + 'T00:00:00').getDay();
-            if (jourSem === 0 || jourSem === 6){ msg.textContent = 'Pas de créneau le week-end.'; return; }
-
-            try {
-                await Promise.all(HEURES.map(heure =>
-                    fetch(`/medecins/${utilisateur.id}/creneaux`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ jour: date, heure })
-                    })
-                ));
-                msg.textContent = `${HEURES.length} créneaux ajoutés pour le ${formatDate(date)}.`;
-                document.getElementById('new-date').value = '';
-                chargerCreneaux();
-            } catch (err) {
-                msg.textContent = 'Erreur de connexion au serveur.';
+            async function chargerCreneaux(){
+                const div = document.getElementById('liste');
+                try {
+                    const creneaux = await fetch(`/medecins/${utilisateur.id}/creneaux`).then(r => r.json());
+                    if (creneaux.length === 0){ div.innerHTML = '<p>Aucun créneau.</p>'; return; }
+                    let html = '<ul>';
+                    creneaux.forEach(c => {
+                        let statut;
+                        if (c.estDispo)     statut = 'Disponible';
+                        else if (!c.valide) statut = 'En attente de validation';
+                        else                statut = 'Confirmé';
+                        html += `<li id="creneau-${c.id}">
+                            ${formatDate(c.jour)} — ${c.heure} — <em>${statut}</em>
+                            ${c.estDispo ? `<button onclick="supprimer(${c.id}, this)">Supprimer</button>` : ''}
+                        </li>`;
+                    });
+                    html += '</ul>';
+                    div.innerHTML = html;
+                } catch (err) {
+                    div.textContent = 'Erreur lors du chargement.';
+                }
             }
-        }
 
-        async function supprimer(creneauId, btn){
-            btn.disabled = true;
-            const msg = document.getElementById('message-liste');
-            try {
-                const response = await fetch(`/medecins/${utilisateur.id}/creneaux/${creneauId}`, { method: 'DELETE' });
-                if (response.ok){
-                    document.getElementById(`creneau-${creneauId}`).remove();
-                    msg.textContent = 'Créneau supprimé.';
-                } else {
-                    msg.textContent = 'Erreur lors de la suppression.';
+            const HEURES = ['09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+
+            async function ajouterCreneau(){
+                const date = document.getElementById('new-date').value;
+                const msg  = document.getElementById('message-ajout');
+
+                if (!date){ msg.textContent = 'Veuillez choisir une date.'; return; }
+
+                const jourSem = new Date(date + 'T00:00:00').getDay();
+                if (jourSem === 0 || jourSem === 6){ msg.textContent = 'Pas de créneau le week-end.'; return; }
+
+                try {
+                    await Promise.all(HEURES.map(heure =>
+                        fetch(`/medecins/${utilisateur.id}/creneaux`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ jour: date, heure })
+                        })
+                    ));
+                    msg.textContent = `${HEURES.length} créneaux ajoutés pour le ${formatDate(date)}.`;
+                    document.getElementById('new-date').value = '';
+                    chargerCreneaux();
+                } catch (err) {
+                    msg.textContent = 'Erreur de connexion au serveur.';
+                }
+            }
+
+            async function supprimer(creneauId, btn){
+                btn.disabled = true;
+                const msg = document.getElementById('message-liste');
+                try {
+                    const response = await fetch(`/medecins/${utilisateur.id}/creneaux/${creneauId}`, { method: 'DELETE' });
+                    if (response.ok){
+                        document.getElementById(`creneau-${creneauId}`).remove();
+                        msg.textContent = 'Créneau supprimé.';
+                    } else {
+                        msg.textContent = 'Erreur lors de la suppression.';
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    msg.textContent = 'Erreur de connexion au serveur.';
                     btn.disabled = false;
                 }
-            } catch (err) {
-                msg.textContent = 'Erreur de connexion au serveur.';
-                btn.disabled = false;
             }
-        }
 
-        chargerCreneaux();
-    </script>
-</body>
+            chargerCreneaux();
+        </script>
+    </body>
 </html>
