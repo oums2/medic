@@ -54,7 +54,7 @@ public class MedecinController {
     }
 
     @SuppressWarnings("null")
-    @PutMapping("/{id}") // Utilisation de la fonction avec PUT
+    @PutMapping("/{id}")
     public Medecin modifier(@PathVariable int id, @RequestBody Map<String, String> body){
         Medecin medecin = medecinRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medecin introuvable"));
@@ -66,7 +66,8 @@ public class MedecinController {
         if (body.containsKey("specialite")) medecin.setSpecialite(body.get("specialite"));
 
         medecinRepo.save(medecin);
-        return medecinRepo.findById(id).orElseThrow();
+        return medecinRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medecin introuvable"));
     }
 
     @GetMapping("/{id}/dates-dispos")
@@ -94,13 +95,18 @@ public class MedecinController {
         return rdvService.getRdvEnAttenteMedecin(medecin);
     }
 
-    @PutMapping("/{id}/valider-rdv") // Valide un RDV en attente
+    @PutMapping("/{id}/valider-rdv")
     public Creneau validerRdv(@PathVariable int id, @RequestBody Map<String, String> body){
+        String patientIdStr = body.get("patientId");
+        String jour  = body.get("jour");
+        String heure = body.get("heure");
+        if (patientIdStr == null || jour == null || heure == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patientId, jour et heure sont requis");
         Medecin medecin = medecinRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
-        Patient patient = patientRepo.findById(Integer.parseInt(body.get("patientId")))
+        Patient patient = patientRepo.findById(Integer.parseInt(patientIdStr))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient introuvable"));
-        return rdvService.validerRdv(medecin, patient, body.get("jour"), body.get("heure"));
+        return rdvService.validerRdv(medecin, patient, jour, heure);
     }
 
     @GetMapping("/{id}/patients") // Patients ayant un RDV avec ce médecin
@@ -135,10 +141,12 @@ public class MedecinController {
     @PostMapping("/{id}/creneaux")
     @ResponseStatus(HttpStatus.CREATED)
     public Creneau ajouterCreneau(@PathVariable int id, @RequestBody Map<String, String> body){
-        Medecin medecin = medecinRepo.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
         String jour  = body.get("jour");
         String heure = body.get("heure");
+        if (jour == null || heure == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "jour et heure sont requis");
+        Medecin medecin = medecinRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
         if (creneauRepo.existsByMedecinAndJourAndHeure(medecin, jour, heure))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Créneau déjà existant");
         return creneauRepo.save(new Creneau(jour, heure, medecin));

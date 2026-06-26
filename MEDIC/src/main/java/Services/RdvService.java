@@ -76,6 +76,7 @@ public class RdvService {
     public List<Patient> getPatientsduMedecin(Medecin medecin){
         return getPlanningMedecin(medecin).stream()
                 .map(Creneau::getPatient)
+                .filter(p -> p != null)
                 .distinct()
                 .collect(Collectors.toList());
     }
