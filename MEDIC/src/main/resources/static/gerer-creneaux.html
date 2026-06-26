@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr-FR">
 <head>
     <meta charset="UTF-8">
     <title>MEDIC — Gérer les créneaux</title>
@@ -18,14 +18,8 @@
         <div id="liste-creneaux"></div>
 
         <h3>Ajouter un créneau</h3>
-        <label>Jour :</label>
-        <select id="new-jour">
-            <option value="">-- Sélectionner --</option>
-            <option>Lundi</option><option>Mardi</option><option>Mercredi</option>
-            <option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
-        </select>
-        <label>Heure :</label>
-        <input type="time" id="new-heure" step="1800">
+        <label>Date :</label>
+        <input type="date" id="new-jour">
         <button onclick="ajouterCreneau()">Ajouter</button>
     </div>
 
@@ -75,7 +69,7 @@
                     else if (!c.valide) statut = 'En attente';
                     else                statut = 'Confirmé';
                     html += `<li id="creneau-${c.id}">
-                        ${c.jour} — ${c.heure} — <em>${statut}</em>
+                        ${formatDate(c.jour)} — ${c.heure} — <em>${statut}</em>
                         <button onclick="supprimerCreneau(${medecinId}, ${c.id}, this)">Supprimer</button>
                     </li>`;
                 });
@@ -86,24 +80,31 @@
             }
         }
 
+        const HEURES = ['09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+
+        function formatDate(dateStr){
+            if (!dateStr) return '';
+            return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR',
+                { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        }
+
         async function ajouterCreneau(){
             const medecinId = document.getElementById('select-medecin').value;
-            const jour  = document.getElementById('new-jour').value;
-            const heure = document.getElementById('new-heure').value;
-            const msg   = document.getElementById('message');
-            if (!jour || !heure){ msg.textContent = 'Veuillez choisir un jour et une heure.'; return; }
+            const jour = document.getElementById('new-jour').value;
+            const msg  = document.getElementById('message');
+            if (!jour){ msg.textContent = 'Veuillez choisir une date.'; return; }
+            const jourSem = new Date(jour + 'T00:00:00').getDay();
+            if (jourSem === 0 || jourSem === 6){ msg.textContent = 'Pas de créneau le week-end.'; return; }
             try {
-                const response = await fetch(`/medecins/${medecinId}/creneaux`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jour, heure })
-                });
-                if (response.ok || response.status === 201){
-                    msg.textContent = 'Créneau ajouté.';
-                    chargerCreneaux();
-                } else {
-                    msg.textContent = 'Erreur lors de l\'ajout.';
-                }
+                await Promise.all(HEURES.map(heure =>
+                    fetch(`/medecins/${medecinId}/creneaux`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ jour, heure })
+                    })
+                ));
+                msg.textContent = `${HEURES.length} créneaux ajoutés pour le ${formatDate(jour)}.`;
+                chargerCreneaux();
             } catch (err) {
                 msg.textContent = 'Erreur de connexion au serveur.';
             }

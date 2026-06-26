@@ -33,6 +33,11 @@
         verifierPatient(utilisateur);
         document.getElementById('bienvenue').textContent = `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
+        function formatDate(dateStr){
+            return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR',
+                { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        }
+
         document.getElementById('form-recherche').addEventListener('submit', function(e){
             e.preventDefault();
             rechercher();
@@ -74,7 +79,7 @@
                     const statut = rdv.valide ? 'Confirmé' : 'En attente de validation';
                     html += `<li id="rdv-${rdv.id}">
                         Dr ${rdv.medecin.nom} ${rdv.medecin.prenom} (${rdv.medecin.specialite})
-                        — ${rdv.jour} à ${rdv.heure} — <em>${statut}</em>
+                        — ${formatDate(rdv.jour)} à ${rdv.heure} — <em>${statut}</em>
                         <button onclick="annulerRdv(${rdv.id}, '${rdv.jour}', '${rdv.heure}', this)">Annuler</button>
                     </li>`;
                 });

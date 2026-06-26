@@ -8,6 +8,7 @@
     <h1>Accueil Médecin</h1>
     <p id="bienvenue"></p>
     <nav>
+        <a href="/mes-creneaux.html">Mes créneaux</a> |
         <a href="/medecin.html">Mes informations</a> 
         <a href="/" onclick="deconnexion()">Se déconnecter</a>
     </nav>
@@ -38,6 +39,11 @@
         const utilisateur = getUtilisateur();
         verifierMedecin(utilisateur);
         document.getElementById('bienvenue').textContent = `Bienvenue Dr ${utilisateur.prenom} ${utilisateur.nom}`;
+
+        function formatDate(dateStr){
+            return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR',
+                { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        }
 
         document.getElementById('form-recherche').addEventListener('submit', function(e){
             e.preventDefault();
@@ -76,7 +82,7 @@
                 rdvs.forEach(rdv => {
                     html += `<li id="rdv-att-${rdv.id}">
                         ${rdv.patient.nom} ${rdv.patient.prenom}
-                        — ${rdv.jour} à ${rdv.heure}
+                        — ${formatDate(rdv.jour)} à ${rdv.heure}
                         <button onclick="validerRdv(${rdv.id}, ${rdv.patient.id}, '${rdv.patient.nom}', '${rdv.patient.prenom}', '${rdv.jour}', '${rdv.heure}', this)">Valider</button>
                         <button onclick="refuserRdv(${rdv.id}, this)">Refuser</button>
                     </li>`;
@@ -138,7 +144,7 @@
                 rdvs.forEach(rdv => {
                     html += `<li id="rdv-pl-${rdv.id}">
                         ${rdv.patient.nom} ${rdv.patient.prenom}
-                        — ${rdv.jour} à ${rdv.heure}
+                        — ${formatDate(rdv.jour)} à ${rdv.heure}
                         <button onclick="annulerRdv(${rdv.id}, '${rdv.jour}', '${rdv.heure}', this)">Annuler</button>
                     </li>`;
                 });

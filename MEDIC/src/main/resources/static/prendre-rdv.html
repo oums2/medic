@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>MEDIC — Prendre un rendez-vous</title>
+    <style>
+        table { border-collapse: collapse; }
+        th, td { width: 40px; height: 40px; text-align: center; }
+        th { background: #eee; }
+        .dispo { background: #c8f7c5; cursor: pointer; border-radius: 4px; border: none; width: 36px; height: 36px; }
+        .dispo:hover { background: #27ae60; color: white; }
+        .indispo { color: #ccc; }
+        .ouvrable { background: none; border: none; cursor: pointer; width: 36px; height: 36px; }
+        .ouvrable:hover { background: #eee; border-radius: 4px; }
+        .weekend { color: #bbb; background: #f9f9f9; }
+        .passe { color: #ddd; }
+        nav-cal { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    </style>
 </head>
 <body>
     <h1>Prendre un rendez-vous</h1>
-
     <p id="info-medecin"></p>
 
-    <label>Jour :</label>
-    <select id="jour">
-        <option value="">-- Sélectionner un jour --</option>
-        <option>Lundi</option><option>Mardi</option><option>Mercredi</option>
-        <option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
-    </select>
-    <button onclick="voirDispos()">Voir les disponibilités</button>
-
+    <div id="calendrier"></div>
     <div id="creneaux"></div>
     <p id="message"></p>
 
@@ -33,29 +38,98 @@
         document.getElementById('info-medecin').textContent =
             `Dr ${medecin.prenom} ${medecin.nom} — ${medecin.specialite}`;
 
+        const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+        let annee, mois, datesDispos = [];
         let creneauSelectionne = null;
 
-        async function voirDispos(){
-            const jour = document.getElementById('jour').value;
-            const msg  = document.getElementById('message');
-            if (!jour){ msg.textContent = 'Veuillez choisir un jour.'; return; }
-            creneauSelectionne = null;
+        async function init(){
+            const auj = new Date();
+            annee = auj.getFullYear();
+            mois  = auj.getMonth();
+            try {
+                datesDispos = await fetch(`/medecins/${medecin.id}/dates-dispos`).then(r => r.json());
+            } catch(e) { datesDispos = []; }
+            afficherCalendrier();
+        }
+
+        function afficherCalendrier(){
+            const auj = new Date(); auj.setHours(0,0,0,0);
+            const premier = new Date(annee, mois, 1);
+            const dernier = new Date(annee, mois + 1, 0);
+
+            // Décalage lundi=0
+            let depart = (premier.getDay() + 6) % 7;
+
+            let html = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+                <button onclick="moisPrec()">◀</button>
+                <strong>${MOIS[mois]} ${annee}</strong>
+                <button onclick="moisSuiv()">▶</button>
+            </div>
+            <table>
+                <tr><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr>
+                <tr>`;
+
+            for (let i = 0; i < depart; i++) html += '<td></td>';
+
+            let cellule = depart;
+            for (let j = 1; j <= dernier.getDate(); j++){
+                if (cellule % 7 === 0 && j > 1) html += '</tr><tr>';
+
+                const date    = new Date(annee, mois, j);
+                const dateStr = toISO(date);
+                const jourSem = date.getDay(); // 0=dim, 6=sam
+                const weekend = jourSem === 0 || jourSem === 6;
+                const passe   = date < auj;
+                const dispo   = datesDispos.includes(dateStr);
+
+                if (passe || weekend) {
+                    html += `<td class="${weekend ? 'weekend' : 'passe'}">${j}</td>`;
+                } else {
+                    html += `<td><button class="${dispo ? 'dispo' : 'ouvrable'}" onclick="choisirDate('${dateStr}')">${j}</button></td>`;
+                }
+                cellule++;
+            }
+            while (cellule % 7 !== 0){ html += '<td></td>'; cellule++; }
+            html += '</tr></table>';
+            document.getElementById('calendrier').innerHTML = html;
             document.getElementById('creneaux').innerHTML = '';
+            creneauSelectionne = null;
+        }
+
+        function moisPrec(){ if (mois === 0){ mois = 11; annee--; } else mois--; afficherCalendrier(); }
+        function moisSuiv(){ if (mois === 11){ mois = 0; annee++; } else mois++; afficherCalendrier(); }
+
+        function toISO(date){
+            const y = date.getFullYear();
+            const m = String(date.getMonth()+1).padStart(2,'0');
+            const d = String(date.getDate()).padStart(2,'0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function formatDate(dateStr){
+            return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR',
+                { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        }
+
+        async function choisirDate(dateStr){
+            creneauSelectionne = null;
+            const div = document.getElementById('creneaux');
+            const msg = document.getElementById('message');
             msg.textContent = '';
             try {
-                const dispos = await fetch(`/medecins/${medecin.id}/dispos?jour=${encodeURIComponent(jour)}`).then(r => r.json());
+                const dispos = await fetch(`/medecins/${medecin.id}/dispos?jour=${encodeURIComponent(dateStr)}`).then(r => r.json());
                 if (dispos.length === 0){
-                    document.getElementById('creneaux').innerHTML = '<p>Aucun créneau disponible.</p>';
+                    div.innerHTML = `<p>Aucun créneau disponible le ${formatDate(dateStr)}.</p>`;
                     return;
                 }
-                let html = `<p>${dispos.length} créneau(x) disponible(s) :</p><p>`;
+                let html = `<p>Créneaux disponibles le <strong>${formatDate(dateStr)}</strong> :</p><p>`;
                 dispos.forEach(c => {
                     html += `<button id="c-${c.id}" onclick="selectionner(${c.id},'${c.jour}','${c.heure}')">${c.heure}</button> `;
                 });
                 html += `</p><br><button id="btn-valider" onclick="reserver()" disabled>Valider</button>`;
-                document.getElementById('creneaux').innerHTML = html;
-            } catch (err) {
-                msg.textContent = 'Erreur lors du chargement des disponibilités.';
+                div.innerHTML = html;
+            } catch(err) {
+                msg.textContent = 'Erreur lors du chargement des créneaux.';
             }
         }
 
@@ -82,17 +156,22 @@
                     })
                 });
                 if (response.ok){
-                    msg.textContent = `RDV demandé le ${creneauSelectionne.jour} à ${creneauSelectionne.heure}. En attente de validation.`;
+                    msg.textContent = `RDV demandé le ${formatDate(creneauSelectionne.jour)} à ${creneauSelectionne.heure}. En attente de validation.`;
                     document.getElementById('creneaux').innerHTML = '';
                     creneauSelectionne = null;
+                    // Rafraîchir les dispo
+                    datesDispos = await fetch(`/medecins/${medecin.id}/dates-dispos`).then(r => r.json());
+                    afficherCalendrier();
                 } else {
                     const data = await response.json();
                     msg.textContent = data.message || 'Erreur lors de la réservation.';
                 }
-            } catch (err) {
+            } catch(err) {
                 msg.textContent = 'Erreur de connexion au serveur.';
             }
         }
+
+        init();
     </script>
 </body>
 </html>

@@ -12,10 +12,12 @@ import java.util.Optional;
 
 //@Repository
 public interface CreneauRepository extends JpaRepository<Creneau, Integer>{
-    List<Creneau> findByMedecin(Medecin medecin);
+    List<Creneau> findByMedecinOrderByJourAscHeureAsc(Medecin medecin);
     List<Creneau> findByMedecinAndJourAndEstDispoTrue(Medecin medecin, String jour);
     List<Creneau> findByPatient(Patient patient);
     List<Creneau> findByMedecinAndEstDispoFalseAndValideTrue(Medecin medecin);
     List<Creneau> findByMedecinAndEstDispoFalseAndValideFalse(Medecin medecin);
     Optional<Creneau> findByMedecinAndJourAndHeureAndEstDispoTrue(Medecin medecin, String jour, String heure);
+    List<Creneau> findByMedecinAndEstDispoTrue(Medecin medecin);
+    boolean existsByMedecinAndJourAndHeure(Medecin medecin, String jour, String heure);
 }

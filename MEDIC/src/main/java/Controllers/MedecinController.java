@@ -69,6 +69,17 @@ public class MedecinController {
         return medecinRepo.findById(id).orElseThrow();
     }
 
+    @GetMapping("/{id}/dates-dispos")
+    public List<String> getDatesDispos(@PathVariable int id){
+        Medecin medecin = medecinRepo.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Medecin introuvable"));
+        return creneauRepo.findByMedecinAndEstDispoTrue(medecin)
+            .stream()
+            .map(Creneau::getJour)
+            .distinct()
+            .collect(java.util.stream.Collectors.toList());
+    }
+
     @GetMapping("/{id}/dispos") // Utilisation de la fonction avec GET
     public List<Creneau> getDispos(@PathVariable int id, @RequestParam String jour){ // jour à renseigner en paramètre avec /dispos?jour=Lundi
         Medecin medecin = medecinRepo.findById(id)
@@ -118,15 +129,19 @@ public class MedecinController {
     public List<Creneau> getCreneaux(@PathVariable int id){
         Medecin medecin = medecinRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
-        return creneauRepo.findByMedecin(medecin);
+        return creneauRepo.findByMedecinOrderByJourAscHeureAsc(medecin);
     }
 
-    @PostMapping("/{id}/creneaux") // Ajoute un créneau au médecin
+    @PostMapping("/{id}/creneaux")
     @ResponseStatus(HttpStatus.CREATED)
     public Creneau ajouterCreneau(@PathVariable int id, @RequestBody Map<String, String> body){
         Medecin medecin = medecinRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Médecin introuvable"));
-        return creneauRepo.save(new Creneau(body.get("jour"), body.get("heure"), medecin));
+        String jour  = body.get("jour");
+        String heure = body.get("heure");
+        if (creneauRepo.existsByMedecinAndJourAndHeure(medecin, jour, heure))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Créneau déjà existant");
+        return creneauRepo.save(new Creneau(jour, heure, medecin));
     }
 
     @DeleteMapping("/{id}/creneaux/{creneauId}") // Supprime un créneau
