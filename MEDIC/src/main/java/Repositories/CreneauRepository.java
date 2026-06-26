@@ -13,7 +13,7 @@ import java.util.Optional;
 //@Repository
 public interface CreneauRepository extends JpaRepository<Creneau, Integer>{
     List<Creneau> findByMedecinOrderByJourAscHeureAsc(Medecin medecin);
-    List<Creneau> findByMedecinAndJourAndEstDispoTrue(Medecin medecin, String jour);
+    List<Creneau> findByMedecinAndJourAndEstDispoTrueOrderByHeureAsc(Medecin medecin, String jour);
     List<Creneau> findByPatient(Patient patient);
     List<Creneau> findByMedecinAndEstDispoFalseAndValideTrue(Medecin medecin);
     List<Creneau> findByMedecinAndEstDispoFalseAndValideFalse(Medecin medecin);

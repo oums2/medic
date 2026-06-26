@@ -31,23 +31,8 @@ public class RdvService {
         return creneauRepo.save(creneau);
     }
 
-    @Transactional // si tout fonctionne tout est enregistrer sinon rien est enregistrer
-    public void annulerRdv(Patient patient, Medecin medecin, String jour, String heure){
-        List<Creneau> rdvPatient = creneauRepo.findByPatient(patient);
-        rdvPatient.stream()
-                .filter(c -> c.getMedecin().equals(medecin)
-                        && c.getJour().equals(jour)
-                        && c.getHeure().equals(heure))
-                .findFirst()
-                .ifPresentOrElse(c -> {
-                    c.setEstDispo(true);
-                    c.setPatient(null);
-                    creneauRepo.save(c);
-                }, () -> { throw new RuntimeException("Rendez-vous introuvable."); });
-    }
-
     public List<Creneau> getDisposMedecin(Medecin medecin, String jour){
-        return creneauRepo.findByMedecinAndJourAndEstDispoTrue(medecin, jour);
+        return creneauRepo.findByMedecinAndJourAndEstDispoTrueOrderByHeureAsc(medecin, jour);
     }
 
     public List<Creneau> getRdvPatient(Patient patient){

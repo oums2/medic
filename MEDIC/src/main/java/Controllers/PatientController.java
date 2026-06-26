@@ -1,34 +1,30 @@
 package Controllers;
   
-import Entities.Creneau;
 import Entities.DossierPatient;
 import Entities.Patient;
 import Repositories.PatientRepository;
 import Services.DossierService;
 import Services.InscriptionService;
-import Services.RdvService;
- 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
- 
+
 import java.util.List;
 import java.util.Map;
- 
-@RestController // cette classe est un controller web 
-@RequestMapping("/patients") // chemin pour y accéder 
-public class PatientController { 
- 
+
+@RestController
+@RequestMapping("/patients")
+public class PatientController {
+
     private InscriptionService inscriptionService;
-    private RdvService rdvService;
     private DossierService dossierService;
     private PatientRepository patientRepo;
     private BCryptPasswordEncoder passwordEncoder;
 
-    public PatientController(InscriptionService inscriptionService, RdvService rdvService, DossierService dossierService, PatientRepository patientRepo, BCryptPasswordEncoder passwordEncoder){
+    public PatientController(InscriptionService inscriptionService, DossierService dossierService, PatientRepository patientRepo, BCryptPasswordEncoder passwordEncoder){
         this.inscriptionService = inscriptionService;
-        this.rdvService = rdvService;
         this.dossierService = dossierService;
         this.patientRepo = patientRepo;
         this.passwordEncoder = passwordEncoder;
@@ -70,13 +66,6 @@ public class PatientController {
         if (body.containsKey("numero"))     patient.setNumero(body.get("numero"));
 
         return patientRepo.save(patient);
-    }
- 
-    @GetMapping("/{id}/rdv") // Utilisation de la fonction avec GET
-    public List<Creneau> getRdv(@PathVariable int id){
-        Patient patient = patientRepo.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient introuvable"));
-        return rdvService.getRdvPatient(patient);
     }
  
     @GetMapping("/{id}/dossier") // Utilisation de la fonction avec GET
