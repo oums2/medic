@@ -18,8 +18,14 @@
             <label>Email :</label><br>
             <input type="email" id="m-email" required><br><br>
 
+            <label>Confirmer l'email :</label><br>
+            <input type="email" id="m-email-confirm" required><br><br>
+
             <label>Mot de passe :</label><br>
             <input type="password" id="m-motDePasse" required><br><br>
+
+            <label>Confirmer le mot de passe :</label><br>
+            <input type="password" id="m-motDePasse-confirm" required><br><br>
 
             <label>Spécialité :</label><br>
             <select id="m-specialite" required>
@@ -52,6 +58,20 @@
 
                 const msg = document.getElementById('message');
 
+                const email        = document.getElementById('m-email').value;
+                const emailConfirm = document.getElementById('m-email-confirm').value;
+                const mdp          = document.getElementById('m-motDePasse').value;
+                const mdpConfirm   = document.getElementById('m-motDePasse-confirm').value;
+
+                if (email !== emailConfirm) {
+                    msg.textContent = 'Les adresses email ne correspondent pas.';
+                    return;
+                }
+                if (mdp !== mdpConfirm) {
+                    msg.textContent = 'Les mots de passe ne correspondent pas.';
+                    return;
+                }
+
                 try {
                     const response = await fetch('/medecins/inscription', {
                         method: 'POST',
@@ -59,8 +79,8 @@
                         body: JSON.stringify({
                             nom:        document.getElementById('m-nom').value,
                             prenom:     document.getElementById('m-prenom').value,
-                            email:      document.getElementById('m-email').value,
-                            motDePasse: document.getElementById('m-motDePasse').value,
+                            email:      email,
+                            motDePasse: mdp,
                             specialite: document.getElementById('m-specialite').value
                         })
                     });
