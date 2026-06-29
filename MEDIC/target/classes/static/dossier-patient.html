@@ -40,7 +40,9 @@
     <h2>Historique des rendez-vous</h2>
     <div id="rdv-historique"></div>
 
-    <br><button onclick="history.back()">Retour</button>
+    <br>
+    <button onclick="envoyerMessage()">Envoyer un message</button>
+    <button onclick="history.back()">Retour</button>
 
     <script src="/auth.js"></script>
     <script>
@@ -142,6 +144,11 @@
             } catch (err) {
                 divAvenir.textContent = 'Erreur lors du chargement.';
             }
+        }
+
+        function envoyerMessage(){
+            localStorage.setItem('messagerie-contact', patient.id);
+            window.location.href = '/messagerie.html';
         }
 
         chargerDossier();

@@ -30,9 +30,9 @@ public class NotificationController {
         return notifService.getNonLues(u);
     }
 
-    @PutMapping("/{id}/lue")
+    @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void marquerLue(@PathVariable int id) {
-        notifService.marquerLue(id);
+    public void supprimer(@PathVariable int id) {
+        notifService.supprimer(id);
     }
 }

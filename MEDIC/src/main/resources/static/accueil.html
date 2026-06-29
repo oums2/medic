@@ -9,13 +9,9 @@
     <p id="bienvenue"></p>
     <nav>
         <a href="/patient.html">Mes informations</a> |
-        <span style="cursor:pointer" onclick="toggleNotifs()">Notifications <span id="badge" style="display:none;background:red;color:white;border-radius:50%;padding:1px 5px;font-size:0.75em"></span></span>
+        <a href="/notifications.html">Notifications & Messages <span id="badge" style="display:none;background:red;color:white;border-radius:50%;padding:1px 5px;font-size:0.75em"></span></a> |
         <a href="/" onclick="deconnexion()">Se déconnecter</a>
     </nav>
-    <div id="notifs-panel" style="display:none;border:1px solid #ccc;padding:10px;max-width:400px">
-        <strong>Notifications</strong>
-        <div id="notifs-liste"><em>Aucune notification.</em></div>
-    </div>
 
     <hr>
 
@@ -115,41 +111,21 @@
 
         chargerRdv();
 
-        async function chargerNotifs(){
+        async function rafraichirBadge(){
             try {
-                const notifs = await fetch(`/notifications/${utilisateur.id}`).then(r => r.json());
-                const badge  = document.getElementById('badge');
-                const liste  = document.getElementById('notifs-liste');
-                if (notifs.length === 0){
-                    badge.style.display = 'none';
-                    liste.innerHTML = '<em>Aucune notification.</em>';
-                } else {
-                    badge.textContent  = notifs.length;
-                    badge.style.display = 'inline';
-                    liste.innerHTML = notifs.map(n =>
-                        `<div style="margin:6px 0;padding:6px;background:#f9f9f9">
-                            ${n.message}
-                            <button onclick="lireNotif(${n.id}, this)" style="float:right;font-size:0.8em">✓</button>
-                        </div>`
-                    ).join('');
-                }
+                const [notifs, nonLus] = await Promise.all([
+                    fetch(`/notifications/${utilisateur.id}`).then(r => r.json()),
+                    fetch(`/messages/${utilisateur.id}/non-lus`).then(r => r.json())
+                ]);
+                const total = notifs.length + Number(nonLus);
+                const b = document.getElementById('badge');
+                if (total === 0){ b.style.display = 'none'; }
+                else { b.textContent = total; b.style.display = 'inline'; }
             } catch (err) {}
         }
 
-        async function lireNotif(id, btn){
-            await fetch(`/notifications/${id}/lue`, { method: 'PUT' });
-            btn.closest('div').remove();
-            chargerNotifs();
-        }
-
-        function toggleNotifs(){
-            const panel = document.getElementById('notifs-panel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-            if (panel.style.display === 'block') chargerNotifs();
-        }
-
-        chargerNotifs();
-        setInterval(chargerNotifs, 30000);
+        rafraichirBadge();
+        setInterval(rafraichirBadge, 30000);
     </script>
 </body>
 </html>

@@ -10,6 +10,7 @@
     <nav>
         <a href="/mes-creneaux.html">Mes créneaux</a> |
         <a href="/medecin.html">Mes informations</a> |
+        <a href="/messagerie.html">Messagerie <span id="badge-msg" style="display:none;background:red;color:white;border-radius:50%;padding:1px 5px;font-size:0.75em"></span></a> |
         <a href="/" onclick="deconnexion()">Se déconnecter</a>
     </nav>
 
@@ -185,8 +186,25 @@
             window.location.href = '/dossier-patient.html';
         }
 
+        function envoyerMessage(patientId){
+            localStorage.setItem('messagerie-contact', patientId);
+            window.location.href = '/messagerie.html';
+        }
+
         chargerEnAttente();
         chargerPlanning();
+
+        async function rafraichirBadgeMsg(){
+            try {
+                const nonLus = await fetch(`/messages/${utilisateur.id}/non-lus`).then(r => r.json());
+                const bm = document.getElementById('badge-msg');
+                if (nonLus === 0){ bm.style.display = 'none'; }
+                else { bm.textContent = nonLus; bm.style.display = 'inline'; }
+            } catch (err) {}
+        }
+
+        rafraichirBadgeMsg();
+        setInterval(rafraichirBadgeMsg, 30000);
     </script>
 </body>
 </html>

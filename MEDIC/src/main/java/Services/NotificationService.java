@@ -24,10 +24,7 @@ public class NotificationService {
         return notifRepo.findByUtilisateurAndLueFalseOrderByDateDesc(utilisateur);
     }
 
-    public void marquerLue(int id) {
-        notifRepo.findById(id).ifPresent(n -> {
-            n.setLue(true);
-            notifRepo.save(n);
-        });
+    public void supprimer(int id) {
+        notifRepo.deleteById(id);
     }
 }

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC — Messagerie</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; }
+        h1   { padding: 16px; margin: 0; border-bottom: 1px solid #ddd; }
+
+        #layout { display: flex; height: calc(100vh - 57px); }
+
+        #liste-contacts {
+            width: 260px;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .contact-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .contact-item:hover  { background: #f0f4ff; }
+        .contact-item.actif  { background: #e0ebff; font-weight: bold; }
+        .contact-item .badge { background: red; color: white; border-radius: 50%; padding: 1px 6px; font-size: 0.75em; margin-left: 6px; }
+
+        #zone-conversation {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        #zone-vide { flex:1; display:flex; align-items:center; justify-content:center; color:#aaa; }
+
+        #conv-titre { font-size: 1.1em; font-weight: bold; margin-bottom: 10px; }
+        #conv-msgs  {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .msg-envoye { text-align: right; margin: 6px 0; }
+        .msg-recu   { text-align: left;  margin: 6px 0; }
+        .bulle      { display: inline-block; padding: 8px 12px; border-radius: 14px; max-width: 65%; word-break: break-word; }
+        .msg-envoye .bulle { background: #007bff; color: white; }
+        .msg-recu   .bulle { background: #f0f0f0; color: black; }
+        .meta       { font-size: 0.72em; color: #999; display: block; margin-top: 2px; }
+
+        #conv-reply { display: flex; gap: 8px; }
+        #conv-reply textarea { flex: 1; resize: none; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+        #conv-reply button   { padding: 8px 16px; }
+        #msg-err { color: red; font-size: 0.85em; margin-top: 4px; }
+
+        #btn-retour { padding: 8px 14px; margin: 10px 16px; }
+    </style>
+</head>
+<body>
+    <h1>Messagerie</h1>
+
+    <div id="layout">
+        <div id="liste-contacts"><em style="padding:12px;display:block">Chargement...</em></div>
+
+        <div id="zone-conversation">
+            <div id="zone-vide">Sélectionnez une conversation</div>
+            <div id="conv-contenu" style="display:none; flex:1; display:none; flex-direction:column; height:100%">
+                <div id="conv-titre"></div>
+                <div id="conv-msgs"></div>
+                <div id="conv-reply">
+                    <textarea id="input-msg" rows="3" placeholder="Écrire un message..."></textarea>
+                    <button onclick="envoyer()">Envoyer</button>
+                </div>
+                <p id="msg-err"></p>
+            </div>
+        </div>
+    </div>
+
+    <button id="btn-retour" onclick="history.back()">Retour</button>
+
+    <script src="/auth.js"></script>
+    <script>
+        const utilisateur = getUtilisateur();
+        if (!utilisateur) window.location.href = '/';
+
+        const contactPreselectionne = localStorage.getItem('messagerie-contact');
+        localStorage.removeItem('messagerie-contact');
+
+        let contactActif = null;
+        let intervalActualisation = null;
+
+        async function chargerContacts(){
+            const div = document.getElementById('liste-contacts');
+            try {
+                const contacts = await fetch(`/messages/${utilisateur.id}/contacts`).then(r => r.json());
+
+                if (contactPreselectionne) {
+                    const existe = contacts.find(c => String(c.id) === String(contactPreselectionne));
+                    if (!existe) {
+                        const c = await fetch(`/messages/utilisateur/${contactPreselectionne}`).then(r => r.json());
+                        contacts.unshift(c);
+                    }
+                }
+
+                if (contacts.length === 0){
+                    div.innerHTML = '<em style="padding:12px;display:block">Aucune conversation.</em>';
+                } else {
+                    div.innerHTML = contacts.map(c =>
+                        `<div class="contact-item" id="contact-${c.id}" onclick="ouvrirConversation(${c.id}, '${c.prenom} ${c.nom}')">
+                            ${c.prenom} ${c.nom}
+                        </div>`
+                    ).join('');
+                }
+
+                if (contactPreselectionne) {
+                    const c = contacts.find(c => String(c.id) === String(contactPreselectionne));
+                    if (c) ouvrirConversation(c.id, `${c.prenom} ${c.nom}`);
+                }
+
+            } catch (err) {
+                div.textContent = 'Erreur de chargement.';
+            }
+        }
+
+        async function ouvrirConversation(contactId, nom){
+            document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('actif'));
+            const item = document.getElementById(`contact-${contactId}`);
+            if (item) item.classList.add('actif');
+
+            contactActif = contactId;
+            document.getElementById('zone-vide').style.display    = 'none';
+            const contenu = document.getElementById('conv-contenu');
+            contenu.style.display = 'flex';
+            document.getElementById('conv-titre').textContent = nom;
+            document.getElementById('msg-err').textContent = '';
+            document.getElementById('input-msg').value = '';
+
+            await afficherMessages();
+            clearInterval(intervalActualisation);
+            intervalActualisation = setInterval(afficherMessages, 10000);
+        }
+
+        async function afficherMessages(){
+            if (!contactActif) return;
+            const box = document.getElementById('conv-msgs');
+            try {
+                const msgs = await fetch(`/messages/conversation?user1=${utilisateur.id}&user2=${contactActif}`).then(r => r.json());
+                if (msgs.length === 0){ box.innerHTML = '<em>Aucun message.</em>'; return; }
+                const wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 5;
+                box.innerHTML = msgs.map(m => {
+                    const envoye = m.expediteur.id === utilisateur.id;
+                    return `<div class="${envoye ? 'msg-envoye' : 'msg-recu'}">
+                        <span class="bulle">${m.contenu}</span>
+                        <span class="meta">${new Date(m.date).toLocaleString('fr-FR')}</span>
+                    </div>`;
+                }).join('');
+                if (wasAtBottom) box.scrollTop = box.scrollHeight;
+            } catch (err) {}
+        }
+
+        async function envoyer(){
+            const contenu = document.getElementById('input-msg').value.trim();
+            const err     = document.getElementById('msg-err');
+            if (!contenu){ err.textContent = 'Message vide.'; return; }
+            err.textContent = '';
+            try {
+                await fetch('/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ expediteurId: String(utilisateur.id), destinataireId: String(contactActif), contenu })
+                });
+                document.getElementById('input-msg').value = '';
+                afficherMessages();
+            } catch (e) {
+                err.textContent = 'Erreur lors de l\'envoi.';
+            }
+        }
+
+        document.getElementById('input-msg').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); envoyer(); }
+        });
+
+        chargerContacts();
+    </script>
+</body>
+</html>

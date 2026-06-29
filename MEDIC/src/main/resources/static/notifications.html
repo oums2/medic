@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>MEDIC — Notifications & Messages</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; }
+        h1   { padding: 16px; margin: 0; border-bottom: 1px solid #ddd; }
+
+        #layout { display: flex; height: calc(100vh - 57px); }
+
+        #liste-gauche {
+            width: 280px;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .section-titre {
+            padding: 10px 14px;
+            font-weight: bold;
+            font-size: 0.85em;
+            color: #555;
+            background: #f7f7f7;
+            border-bottom: 1px solid #eee;
+            text-transform: uppercase;
+        }
+        .item {
+            padding: 12px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 0.93em;
+        }
+        .item:hover { background: #f0f4ff; }
+        .item.actif { background: #e0ebff; font-weight: bold; }
+        .item .sous-titre { font-size: 0.8em; color: #888; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item.non-lu .sous-titre { color: #333; font-weight: bold; }
+
+        #zone-droite {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #zone-vide { flex:1; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:1.1em; }
+
+        #detail { display:none; flex-direction:column; flex:1; padding:20px; overflow-y:auto; }
+        #detail-titre { font-size:1.1em; font-weight:bold; margin-bottom:6px; }
+        #detail-meta  { font-size:0.8em; color:#888; margin-bottom:14px; }
+
+        /* Notification */
+        #detail-notif-corps { background:#f9f9f9; border-left:4px solid #007bff; padding:14px; border-radius:4px; }
+        #btn-supprimer { margin-top:14px; padding:7px 16px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer; }
+
+        /* Conversation message */
+        #conv-msgs { flex:1; overflow-y:auto; border:1px solid #ddd; border-radius:6px; padding:10px; margin-bottom:10px; }
+        .msg-envoye { text-align:right; margin:6px 0; }
+        .msg-recu   { text-align:left;  margin:6px 0; }
+        .bulle      { display:inline-block; padding:8px 12px; border-radius:14px; max-width:65%; word-break:break-word; }
+        .msg-envoye .bulle { background:#007bff; color:white; }
+        .msg-recu   .bulle { background:#f0f0f0; color:black; }
+        .meta-msg   { font-size:0.72em; color:#999; display:block; margin-top:2px; }
+        #conv-reply { display:flex; gap:8px; }
+        #conv-reply textarea { flex:1; resize:none; padding:8px; border:1px solid #ccc; border-radius:6px; }
+        #conv-reply button   { padding:8px 16px; }
+        #msg-err { color:red; font-size:0.85em; margin-top:4px; }
+
+        #btn-retour { position:fixed; bottom:14px; left:14px; padding:8px 14px; }
+    </style>
+</head>
+<body>
+    <h1>Notifications & Messages</h1>
+
+    <div id="layout">
+        <div id="liste-gauche"><em style="padding:12px;display:block">Chargement...</em></div>
+
+        <div id="zone-droite">
+            <div id="zone-vide">Sélectionnez un élément</div>
+            <div id="detail">
+                <div id="detail-titre"></div>
+                <div id="detail-meta"></div>
+                <!-- Notification -->
+                <div id="vue-notif" style="display:none">
+                    <div id="detail-notif-corps"></div>
+                    <button id="btn-supprimer" onclick="supprimerNotif()">Supprimer</button>
+                </div>
+                <!-- Message -->
+                <div id="vue-message" style="display:none; flex-direction:column; flex:1; overflow:hidden">
+                    <div id="conv-msgs"></div>
+                    <div id="conv-reply">
+                        <textarea id="input-msg" rows="3" placeholder="Répondre..."></textarea>
+                        <button onclick="envoyer()">Envoyer</button>
+                    </div>
+                    <p id="msg-err"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="btn-retour" onclick="history.back()">Retour</button>
+
+    <script src="/auth.js"></script>
+    <script>
+        const utilisateur = getUtilisateur();
+        verifierPatient(utilisateur);
+
+        let notifActive   = null;
+        let contactActif  = null;
+        let intervalActu  = null;
+
+        async function charger(){
+            const liste = document.getElementById('liste-gauche');
+            liste.innerHTML = '';
+
+            const [notifs, contacts] = await Promise.all([
+                fetch(`/notifications/${utilisateur.id}`).then(r => r.json()).catch(() => []),
+                fetch(`/messages/${utilisateur.id}/contacts`).then(r => r.json()).catch(() => [])
+            ]);
+
+            if (notifs.length === 0 && contacts.length === 0){
+                liste.innerHTML = '<em style="padding:12px;display:block">Aucun élément.</em>';
+                return;
+            }
+
+            if (notifs.length > 0){
+                liste.innerHTML += `<div class="section-titre">Notifications (${notifs.length})</div>`;
+                notifs.forEach(n => {
+                    const el = document.createElement('div');
+                    el.className = 'item non-lu';
+                    el.id = `notif-item-${n.id}`;
+                    el.innerHTML = `
+                        <div>Notification</div>
+                        <div class="sous-titre">${n.message}</div>
+                    `;
+                    el.onclick = () => ouvrirNotif(n);
+                    liste.appendChild(el);
+                });
+            }
+
+            if (contacts.length > 0){
+                liste.innerHTML += `<div class="section-titre">Messages</div>`;
+                contacts.forEach(c => {
+                    const el = document.createElement('div');
+                    el.className = 'item';
+                    el.id = `contact-item-${c.id}`;
+                    el.innerHTML = `
+                        <div>${c.prenom} ${c.nom}</div>
+                        <div class="sous-titre">Cliquer pour voir la conversation</div>
+                    `;
+                    el.onclick = () => ouvrirConversation(c);
+                    liste.appendChild(el);
+                });
+            }
+        }
+
+        function setActif(id){
+            document.querySelectorAll('.item').forEach(el => el.classList.remove('actif'));
+            const el = document.getElementById(id);
+            if (el) el.classList.add('actif');
+        }
+
+        function ouvrirNotif(n){
+            clearInterval(intervalActu);
+            notifActive  = n.id;
+            contactActif = null;
+            setActif(`notif-item-${n.id}`);
+
+            document.getElementById('zone-vide').style.display = 'none';
+            document.getElementById('detail').style.display    = 'flex';
+            document.getElementById('vue-notif').style.display    = 'block';
+            document.getElementById('vue-message').style.display  = 'none';
+
+            document.getElementById('detail-titre').textContent = 'Notification';
+            document.getElementById('detail-meta').textContent  = new Date(n.date).toLocaleString('fr-FR');
+            document.getElementById('detail-notif-corps').textContent = n.message;
+        }
+
+        async function supprimerNotif(){
+            if (!notifActive) return;
+            await fetch(`/notifications/${notifActive}`, { method: 'DELETE' });
+            document.getElementById(`notif-item-${notifActive}`).remove();
+            notifActive = null;
+            document.getElementById('detail').style.display   = 'none';
+            document.getElementById('zone-vide').style.display = 'flex';
+        }
+
+        function ouvrirConversation(contact){
+            clearInterval(intervalActu);
+            contactActif = contact.id;
+            notifActive  = null;
+            setActif(`contact-item-${contact.id}`);
+
+            document.getElementById('zone-vide').style.display    = 'none';
+            document.getElementById('detail').style.display       = 'flex';
+            document.getElementById('vue-notif').style.display    = 'none';
+            document.getElementById('vue-message').style.display  = 'flex';
+
+            document.getElementById('detail-titre').textContent = `${contact.prenom} ${contact.nom}`;
+            document.getElementById('detail-meta').textContent  = '';
+            document.getElementById('msg-err').textContent = '';
+            document.getElementById('input-msg').value = '';
+
+            afficherMessages();
+            intervalActu = setInterval(afficherMessages, 10000);
+        }
+
+        async function afficherMessages(){
+            if (!contactActif) return;
+            const box = document.getElementById('conv-msgs');
+            try {
+                const msgs = await fetch(`/messages/conversation?user1=${utilisateur.id}&user2=${contactActif}`).then(r => r.json());
+                if (msgs.length === 0){ box.innerHTML = '<em>Aucun message.</em>'; return; }
+                const atBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 5;
+                box.innerHTML = msgs.map(m => {
+                    const envoye = m.expediteur.id === utilisateur.id;
+                    return `<div class="${envoye ? 'msg-envoye' : 'msg-recu'}">
+                        <span class="bulle">${m.contenu}</span>
+                        <span class="meta-msg">${new Date(m.date).toLocaleString('fr-FR')}</span>
+                    </div>`;
+                }).join('');
+                if (atBottom) box.scrollTop = box.scrollHeight;
+            } catch(e) {}
+        }
+
+        async function envoyer(){
+            const contenu = document.getElementById('input-msg').value.trim();
+            const err     = document.getElementById('msg-err');
+            if (!contenu){ err.textContent = 'Message vide.'; return; }
+            err.textContent = '';
+            try {
+                await fetch('/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ expediteurId: String(utilisateur.id), destinataireId: String(contactActif), contenu })
+                });
+                document.getElementById('input-msg').value = '';
+                afficherMessages();
+            } catch(e) { err.textContent = 'Erreur lors de l\'envoi.'; }
+        }
+
+        document.getElementById('input-msg').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); envoyer(); }
+        });
+
+        charger();
+    </script>
+</body>
+</html>

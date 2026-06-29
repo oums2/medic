@@ -1,12 +1,14 @@
 package Entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.List;
 
 @Entity
 @Table(name = "medecins") // modification dans la table medecins
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Medecin extends Utilisateur {
 
     private String specialite;

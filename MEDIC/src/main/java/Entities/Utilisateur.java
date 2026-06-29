@@ -1,11 +1,13 @@
 package Entities;
  
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
  
 @Entity
 @Table(name = "utilisateurs") //modification dans la table utilisateurs
 @Inheritance(strategy = InheritanceType.JOINED) // patient et medecin seront des tables différentes
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Utilisateur {
  
     @Id
