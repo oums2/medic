@@ -117,7 +117,9 @@
             const msg = document.getElementById('message');
             msg.textContent = '';
             try {
-                const dispos = await fetch(`/medecins/${medecin.id}/dispos?jour=${encodeURIComponent(dateStr)}`).then(r => r.json());
+                const maintenant = new Date().toISOString().slice(0, 16);
+                const dispos = (await fetch(`/medecins/${medecin.id}/dispos?jour=${encodeURIComponent(dateStr)}`).then(r => r.json()))
+                    .filter(c => (c.jour + 'T' + c.heure) > maintenant);
                 if (dispos.length === 0){
                     div.innerHTML = `<p>Aucun créneau disponible le ${formatDate(dateStr)}.</p>`;
                     return;

@@ -34,8 +34,11 @@
 
     <hr>
 
-    <h2>Rendez-vous avec ce patient</h2>
-    <div id="liste-rdv"></div>
+    <h2>Rendez-vous à venir</h2>
+    <div id="rdv-avenir"></div>
+
+    <h2>Historique des rendez-vous</h2>
+    <div id="rdv-historique"></div>
 
     <br><button onclick="history.back()">Retour</button>
 
@@ -98,21 +101,46 @@
             }
         }
 
+        function formatDate(dateStr){
+            return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR',
+                { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        }
+
         async function chargerRdv(){
-            const div = document.getElementById('liste-rdv');
+            const divAvenir     = document.getElementById('rdv-avenir');
+            const divHistorique = document.getElementById('rdv-historique');
             try {
                 const rdvs = await fetch(`/rdv/patients/${patient.id}`).then(r => r.json());
-                const rdvsMedecin = rdvs.filter(r => r.medecin.id === medecin.id);
-                if (rdvsMedecin.length === 0){ div.innerHTML = '<p>Aucun rendez-vous.</p>'; return; }
-                let html = '<ul>';
-                rdvsMedecin.forEach(rdv => {
-                    const statut = rdv.valide ? 'Confirmé' : 'En attente de validation';
-                    html += `<li>${rdv.jour} à ${rdv.heure} — <em>${statut}</em></li>`;
-                });
-                html += '</ul>';
-                div.innerHTML = html;
+                const rdvsMedecin = rdvs
+                    .filter(r => r.medecin.id === medecin.id)
+                    .sort((a, b) => a.jour.localeCompare(b.jour) || a.heure.localeCompare(b.heure));
+
+                const maintenant = new Date().toISOString().slice(0, 16).replace('T', 'T');
+                const avenir     = rdvsMedecin.filter(r => (r.jour + 'T' + r.heure) >= maintenant);
+                const passes     = rdvsMedecin.filter(r => (r.jour + 'T' + r.heure) <  maintenant);
+
+                if (avenir.length === 0){
+                    divAvenir.innerHTML = '<p>Aucun rendez-vous à venir.</p>';
+                } else {
+                    let html = '<ul>';
+                    avenir.forEach(rdv => {
+                        const statut = rdv.valide ? 'Confirmé' : 'En attente de validation';
+                        html += `<li>${formatDate(rdv.jour)} à ${rdv.heure} — <em>${statut}</em></li>`;
+                    });
+                    divAvenir.innerHTML = html + '</ul>';
+                }
+
+                if (passes.length === 0){
+                    divHistorique.innerHTML = '<p>Aucun historique.</p>';
+                } else {
+                    let html = '<ul>';
+                    passes.slice().reverse().forEach(rdv => {
+                        html += `<li>${formatDate(rdv.jour)} à ${rdv.heure} — <em>Passé</em></li>`;
+                    });
+                    divHistorique.innerHTML = html + '</ul>';
+                }
             } catch (err) {
-                div.textContent = 'Erreur lors du chargement.';
+                divAvenir.textContent = 'Erreur lors du chargement.';
             }
         }
 

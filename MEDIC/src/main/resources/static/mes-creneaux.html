@@ -34,7 +34,9 @@
             async function chargerCreneaux(){
                 const div = document.getElementById('liste');
                 try {
-                    const creneaux = await fetch(`/medecins/${utilisateur.id}/creneaux`).then(r => r.json());
+                    const maintenant = new Date().toISOString().slice(0, 16);
+                    const creneaux = (await fetch(`/medecins/${utilisateur.id}/creneaux`).then(r => r.json()))
+                        .filter(c => (c.jour + 'T' + c.heure) >= maintenant);
                     if (creneaux.length === 0){ div.innerHTML = '<p>Aucun créneau.</p>'; return; }
                     let html = '<ul>';
                     creneaux.forEach(c => {

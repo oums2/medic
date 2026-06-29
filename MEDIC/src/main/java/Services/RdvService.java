@@ -8,6 +8,10 @@ import Repositories.CreneauRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,8 +26,11 @@ public class RdvService {
         this.notifService = notifService;
     }
 
-    @Transactional // si tout fonctionne tout est enregistrer sinon rien est enregistrer
+    @Transactional
     public Creneau prendreRdv(Patient patient, Medecin medecin, String jour, String heure){
+        LocalDateTime rdvDateTime = LocalDateTime.of(LocalDate.parse(jour), LocalTime.parse(heure));
+        if (rdvDateTime.isBefore(LocalDateTime.now()))
+            throw new RuntimeException("Impossible de réserver un créneau déjà passé.");
         Creneau creneau = creneauRepo
                 .findByMedecinAndJourAndHeureAndEstDispoTrue(medecin, jour, heure)
                 .orElseThrow(() -> new RuntimeException("Créneau indisponible : " + jour + " " + heure));
