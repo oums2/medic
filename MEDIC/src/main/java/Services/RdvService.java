@@ -5,7 +5,6 @@ import Entities.Medecin;
 import Entities.Patient;
 import Repositories.CreneauRepository;
 
-//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +15,11 @@ import java.util.stream.Collectors;
 public class RdvService {
 
     private final CreneauRepository creneauRepo;
+    private final NotificationService notifService;
 
-    RdvService(CreneauRepository creneauRepo){
+    RdvService(CreneauRepository creneauRepo, NotificationService notifService){
         this.creneauRepo = creneauRepo;
+        this.notifService = notifService;
     }
 
     @Transactional // si tout fonctionne tout est enregistrer sinon rien est enregistrer
@@ -51,24 +52,36 @@ public class RdvService {
 
     @Transactional
     public Creneau validerRdv(Medecin medecin, Patient patient, String jour, String heure){
-        return creneauRepo.findByPatient(patient).stream()
-                .filter(c -> c.getMedecin().equals(medecin)
-                        && c.getJour().equals(jour)
-                        && c.getHeure().equals(heure)
-                        && !c.isValide())
+        Creneau c = creneauRepo.findByPatient(patient).stream()
+                .filter(cr -> cr.getMedecin().equals(medecin)
+                        && cr.getJour().equals(jour)
+                        && cr.getHeure().equals(heure)
+                        && !cr.isValide())
                 .findFirst()
-                .map(c -> { c.setValide(true); return creneauRepo.save(c); })
                 .orElseThrow(() -> new RuntimeException("Rendez-vous introuvable."));
+        c.setValide(true);
+        Creneau saved = creneauRepo.save(c);
+        notifService.envoyer(patient, "Votre rendez-vous du " + jour + " à " + heure
+                + " avec Dr " + medecin.getNom() + " " + medecin.getPrenom() + " a été confirmé.");
+        return saved;
     }
 
     @Transactional
     public void annulerRdvById(int creneauId){
         Creneau creneau = creneauRepo.findById(creneauId)
                 .orElseThrow(() -> new RuntimeException("Rendez-vous introuvable."));
+        Patient patient = creneau.getPatient();
+        Medecin medecin = creneau.getMedecin();
+        String jour  = creneau.getJour();
+        String heure = creneau.getHeure();
         creneau.setEstDispo(true);
         creneau.setPatient(null);
         creneau.setValide(false);
         creneauRepo.save(creneau);
+        if (patient != null && medecin != null) {
+            notifService.envoyer(patient, "Votre rendez-vous du " + jour + " à " + heure
+                    + " avec Dr " + medecin.getNom() + " " + medecin.getPrenom() + " a été annulé.");
+        }
     }
 
     // Retourne les patients distincts ayant un RDV confirmé avec ce médecin
