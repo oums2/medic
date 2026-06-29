@@ -140,15 +140,22 @@
             try {
                 const rdvs = await fetch(`/medecins/${utilisateur.id}/planning`).then(r => r.json());
                 if (rdvs.length === 0){ div.innerHTML = '<p>Aucun rendez-vous confirmé.</p>'; return; }
-                let html = '<ul>';
+                const parDate = {};
                 rdvs.forEach(rdv => {
-                    html += `<li id="rdv-pl-${rdv.id}">
-                        ${rdv.patient.nom} ${rdv.patient.prenom}
-                        — ${formatDate(rdv.jour)} à ${rdv.heure}
-                        <button onclick="annulerRdv(${rdv.id}, '${rdv.jour}', '${rdv.heure}', this)">Annuler</button>
-                    </li>`;
+                    if (!parDate[rdv.jour]) parDate[rdv.jour] = [];
+                    parDate[rdv.jour].push(rdv);
                 });
-                html += '</ul>';
+                let html = '';
+                Object.keys(parDate).sort().forEach(jour => {
+                    html += `<p><strong>${formatDate(jour)}</strong></p><ul>`;
+                    parDate[jour].forEach(rdv => {
+                        html += `<li id="rdv-pl-${rdv.id}">
+                            ${rdv.heure} — ${rdv.patient.prenom} ${rdv.patient.nom}
+                            <button onclick="annulerRdv(${rdv.id}, '${rdv.jour}', '${rdv.heure}', this)">Annuler</button>
+                        </li>`;
+                    });
+                    html += '</ul>';
+                });
                 div.innerHTML = html;
             } catch (err) {
                 div.textContent = 'Erreur lors du chargement.';
