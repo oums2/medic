@@ -139,7 +139,9 @@
         async function chargerPlanning(){
             const div = document.getElementById('liste-planning');
             try {
-                const rdvs = await fetch(`/medecins/${utilisateur.id}/planning`).then(r => r.json());
+                const maintenant = new Date().toISOString().slice(0, 16);
+                const tous = await fetch(`/medecins/${utilisateur.id}/planning`).then(r => r.json());
+                const rdvs = tous.filter(r => (r.jour + 'T' + r.heure) >= maintenant);
                 if (rdvs.length === 0){ div.innerHTML = '<p>Aucun rendez-vous confirmé.</p>'; return; }
                 const parDate = {};
                 rdvs.forEach(rdv => {

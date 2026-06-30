@@ -81,8 +81,10 @@
         async function chargerRdv(){
             const div = document.getElementById('liste-rdv');
             try {
-                const rdvs = await fetch(`/rdv/patients/${utilisateur.id}`).then(r => r.json());
-                if (rdvs.length === 0){ div.innerHTML = '<p>Aucun rendez-vous.</p>'; return; }
+                const maintenant = new Date().toISOString().slice(0, 16);
+                const tous = await fetch(`/rdv/patients/${utilisateur.id}`).then(r => r.json());
+                const rdvs = tous.filter(r => (r.jour + 'T' + r.heure) >= maintenant);
+                if (rdvs.length === 0){ div.innerHTML = '<p>Aucun rendez-vous à venir.</p>'; return; }
                 let html = '<ul>';
                 rdvs.forEach(rdv => {
                     const statut = rdv.valide ? 'Confirmé' : 'En attente de validation';

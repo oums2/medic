@@ -33,6 +33,8 @@
         .item:hover { background: #f0f4ff; }
         .item.actif { background: #e0ebff; font-weight: bold; }
         .item .sous-titre { font-size: 0.8em; color: #888; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* Non lue : texte en gras et point bleu */
+        .item.non-lu::before { content: '●'; color: #007bff; margin-right: 6px; font-size: 0.6em; vertical-align: middle; }
         .item.non-lu .sous-titre { color: #333; font-weight: bold; }
 
         #zone-droite {
@@ -47,11 +49,9 @@
         #detail-titre { font-size:1.1em; font-weight:bold; margin-bottom:6px; }
         #detail-meta  { font-size:0.8em; color:#888; margin-bottom:14px; }
 
-        /* Notification */
         #detail-notif-corps { background:#f9f9f9; border-left:4px solid #007bff; padding:14px; border-radius:4px; }
         #btn-supprimer { margin-top:14px; padding:7px 16px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer; }
 
-        /* Conversation message */
         #conv-msgs { flex:1; overflow-y:auto; border:1px solid #ddd; border-radius:6px; padding:10px; margin-bottom:10px; }
         .msg-envoye { text-align:right; margin:6px 0; }
         .msg-recu   { text-align:left;  margin:6px 0; }
@@ -78,12 +78,12 @@
             <div id="detail">
                 <div id="detail-titre"></div>
                 <div id="detail-meta"></div>
-                <!-- Notification -->
+                <!-- Panneau notification -->
                 <div id="vue-notif" style="display:none">
                     <div id="detail-notif-corps"></div>
                     <button id="btn-supprimer" onclick="supprimerNotif()">Supprimer</button>
                 </div>
-                <!-- Message -->
+                <!-- Panneau conversation -->
                 <div id="vue-message" style="display:none; flex-direction:column; flex:1; overflow:hidden">
                     <div id="conv-msgs"></div>
                     <div id="conv-reply">
@@ -103,16 +103,17 @@
         const utilisateur = getUtilisateur();
         verifierPatient(utilisateur);
 
-        let notifActive   = null;
-        let contactActif  = null;
-        let intervalActu  = null;
+        let notifActive  = null;
+        let contactActif = null;
+        let intervalActu = null;
 
         async function charger(){
             const liste = document.getElementById('liste-gauche');
             liste.innerHTML = '';
 
+            // Charge TOUTES les notifications (lues + non lues) et les contacts
             const [notifs, contacts] = await Promise.all([
-                fetch(`/notifications/${utilisateur.id}`).then(r => r.json()).catch(() => []),
+                fetch(`/notifications/${utilisateur.id}/toutes`).then(r => r.json()).catch(() => []),
                 fetch(`/messages/${utilisateur.id}/contacts`).then(r => r.json()).catch(() => [])
             ]);
 
@@ -122,10 +123,15 @@
             }
 
             if (notifs.length > 0){
-                liste.innerHTML += `<div class="section-titre">Notifications (${notifs.length})</div>`;
+                const titre = document.createElement('div');
+                titre.className = 'section-titre';
+                titre.textContent = `Notifications (${notifs.length})`;
+                liste.appendChild(titre);
+
                 notifs.forEach(n => {
                     const el = document.createElement('div');
-                    el.className = 'item non-lu';
+                    // non-lu = point bleu + gras ; lue = style normal
+                    el.className = n.lue ? 'item' : 'item non-lu';
                     el.id = `notif-item-${n.id}`;
                     el.innerHTML = `
                         <div>Notification</div>
@@ -137,7 +143,11 @@
             }
 
             if (contacts.length > 0){
-                liste.innerHTML += `<div class="section-titre">Messages</div>`;
+                const titre = document.createElement('div');
+                titre.className = 'section-titre';
+                titre.textContent = 'Messages';
+                liste.appendChild(titre);
+
                 contacts.forEach(c => {
                     const el = document.createElement('div');
                     el.className = 'item';
@@ -158,28 +168,37 @@
             if (el) el.classList.add('actif');
         }
 
-        function ouvrirNotif(n){
+        async function ouvrirNotif(n){
             clearInterval(intervalActu);
             notifActive  = n.id;
             contactActif = null;
             setActif(`notif-item-${n.id}`);
 
-            document.getElementById('zone-vide').style.display = 'none';
-            document.getElementById('detail').style.display    = 'flex';
-            document.getElementById('vue-notif').style.display    = 'block';
-            document.getElementById('vue-message').style.display  = 'none';
+            document.getElementById('zone-vide').style.display   = 'none';
+            document.getElementById('detail').style.display      = 'flex';
+            document.getElementById('vue-notif').style.display   = 'block';
+            document.getElementById('vue-message').style.display = 'none';
 
-            document.getElementById('detail-titre').textContent = 'Notification';
-            document.getElementById('detail-meta').textContent  = new Date(n.date).toLocaleString('fr-FR');
+            document.getElementById('detail-titre').textContent       = 'Notification';
+            document.getElementById('detail-meta').textContent        = new Date(n.date).toLocaleString('fr-FR');
             document.getElementById('detail-notif-corps').textContent = n.message;
+
+            // Marquer comme lue si ce n'est pas déjà le cas (retire le point bleu et le badge)
+            if (!n.lue){
+                await fetch(`/notifications/${n.id}/lue`, { method: 'PUT' });
+                const item = document.getElementById(`notif-item-${n.id}`);
+                if (item) item.classList.remove('non-lu');
+                n.lue = true;
+            }
         }
 
         async function supprimerNotif(){
             if (!notifActive) return;
             await fetch(`/notifications/${notifActive}`, { method: 'DELETE' });
-            document.getElementById(`notif-item-${notifActive}`).remove();
+            const item = document.getElementById(`notif-item-${notifActive}`);
+            if (item) item.remove();
             notifActive = null;
-            document.getElementById('detail').style.display   = 'none';
+            document.getElementById('detail').style.display    = 'none';
             document.getElementById('zone-vide').style.display = 'flex';
         }
 
