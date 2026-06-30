@@ -54,7 +54,6 @@ public class AdminController {
         return utilisateurRepo.save(admin);
     }
 
-    @SuppressWarnings("null") 
     @PutMapping("/{id}") // Utilisation de la fonction avec PUT
     public Utilisateur modifier(@PathVariable int id, @RequestBody Map<String, String> body){
         Utilisateur utilisateur = utilisateurRepo.findById(id)
@@ -69,7 +68,6 @@ public class AdminController {
         return utilisateurRepo.findById(id).orElseThrow();
     }
 
-    @SuppressWarnings("null")
     @PutMapping("/patients/{id}") // Utilisation de la fonction avec PUT
     public Patient modifierPatient(@PathVariable int id, @RequestBody Map<String, String> body){
         Patient patient = patientRepo.findById(id)
@@ -86,7 +84,6 @@ public class AdminController {
         return patientRepo.findById(id).orElseThrow();
     }
 
-    @SuppressWarnings("null")
     @PutMapping("/medecins/{id}") // Utilisation de la fonction avec PUT
     public Medecin modifierMedecin(@PathVariable int id, @RequestBody Map<String, String> body){
         Medecin medecin = medecinRepo.findById(id)
@@ -102,7 +99,6 @@ public class AdminController {
         return medecinRepo.findById(id).orElseThrow();
     }
 
-    @SuppressWarnings("null")
     @DeleteMapping("/medecins/{id}") // Utilisation de la fonction avec DELETE
     @ResponseStatus(HttpStatus.NO_CONTENT) // retourne aucun contenu mais supprime un medecin
     public void suppMedecin(@PathVariable int id){
@@ -111,7 +107,6 @@ public class AdminController {
         inscriptionService.suppMedecin(medecin);
     }
 
-    @SuppressWarnings("null")
     @DeleteMapping("/patients/{id}") // Utilisation de la fonction avec DELETE
     @ResponseStatus(HttpStatus.NO_CONTENT) // retourne aucun contenu mais supprime un patient 
     public void suppPatient(@PathVariable int id){

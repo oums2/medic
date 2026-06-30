@@ -53,7 +53,6 @@ public class MedecinController {
         );
     }
 
-    @SuppressWarnings("null")
     @PutMapping("/{id}")
     public Medecin modifier(@PathVariable int id, @RequestBody Map<String, String> body){
         Medecin medecin = medecinRepo.findById(id)

@@ -52,7 +52,6 @@ public class PatientController {
         );
     }
     
-    @SuppressWarnings("null")
     @PutMapping("/{id}") // Utilisation de la fonction avec PUT
     public Patient modifier(@PathVariable int id, @RequestBody Map<String, String> body){
         Patient patient = patientRepo.findById(id)
