@@ -25,6 +25,12 @@ public class Utilisateur {
  
     @Column(name = "is_admin") // modification dans la colonne is_admin
     private boolean isAdmin;
+
+    @JsonIgnore
+    private String codeOtp;
+
+    @JsonIgnore
+    private java.time.LocalDateTime codeExpire;
  
     public Utilisateur() {}
  
@@ -79,10 +85,16 @@ public class Utilisateur {
         this.motDePasse = motDePasse; 
     }
  
-    public boolean isAdmin(){ 
-        return isAdmin; 
+    public boolean isAdmin(){
+        return isAdmin;
     }
-    public void setAdmin(boolean isAdmin){ 
-        this.isAdmin = isAdmin; 
+    public void setAdmin(boolean isAdmin){
+        this.isAdmin = isAdmin;
     }
+
+    public String getCodeOtp() { return codeOtp; }
+    public void setCodeOtp(String codeOtp) { this.codeOtp = codeOtp; }
+
+    public java.time.LocalDateTime getCodeExpire() { return codeExpire; }
+    public void setCodeExpire(java.time.LocalDateTime codeExpire) { this.codeExpire = codeExpire; }
 }
