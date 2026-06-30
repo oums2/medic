@@ -75,6 +75,12 @@ public class MessageController {
         return messageRepo.countByDestinataireAndLuFalse(u);
     }
 
+    // Retourne les IDs des contacts ayant envoyé des messages non lus à cet utilisateur
+    @GetMapping("/{userId}/expediteurs-non-lus")
+    public List<Integer> getExpediteursNonLus(@PathVariable int userId) {
+        return messageRepo.findIdsExpediteursNonLus(userId);
+    }
+
     @GetMapping("/utilisateur/{id}")
     public Utilisateur getUtilisateur(@PathVariable int id) {
         return utilisateurRepo.findById(id)

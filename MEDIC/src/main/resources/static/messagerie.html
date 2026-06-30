@@ -20,9 +20,10 @@
             cursor: pointer;
             border-bottom: 1px solid #eee;
         }
-        .contact-item:hover  { background: #f0f4ff; }
-        .contact-item.actif  { background: #e0ebff; font-weight: bold; }
-        .contact-item .badge { background: red; color: white; border-radius: 50%; padding: 1px 6px; font-size: 0.75em; margin-left: 6px; }
+        .contact-item:hover   { background: #f0f4ff; }
+        .contact-item.actif   { background: #e0ebff; font-weight: bold; }
+        .contact-item.non-lu  { font-weight: bold; }
+        .contact-item .badge  { background: red; color: white; border-radius: 50%; padding: 1px 6px; font-size: 0.75em; margin-left: 6px; }
 
         #zone-conversation {
             flex: 1;
@@ -92,7 +93,10 @@
         async function chargerContacts(){
             const div = document.getElementById('liste-contacts');
             try {
-                const contacts = await fetch(`/messages/${utilisateur.id}/contacts`).then(r => r.json());
+                const [contacts, nonLusIds] = await Promise.all([
+                    fetch(`/messages/${utilisateur.id}/contacts`).then(r => r.json()),
+                    fetch(`/messages/${utilisateur.id}/expediteurs-non-lus`).then(r => r.json()).catch(() => [])
+                ]);
 
                 if (contactPreselectionne) {
                     const existe = contacts.find(c => String(c.id) === String(contactPreselectionne));
@@ -106,8 +110,8 @@
                     div.innerHTML = '<em style="padding:12px;display:block">Aucune conversation.</em>';
                 } else {
                     div.innerHTML = contacts.map(c =>
-                        `<div class="contact-item" id="contact-${c.id}" onclick="ouvrirConversation(${c.id}, '${c.prenom} ${c.nom}')">
-                            ${c.prenom} ${c.nom}
+                        `<div class="contact-item${nonLusIds.includes(c.id) ? ' non-lu' : ''}" id="contact-${c.id}" onclick="ouvrirConversation(${c.id}, '${c.prenom} ${c.nom}')">
+                            ${nonLusIds.includes(c.id) ? '<span style="color:#007bff;margin-right:6px;font-size:0.6em;vertical-align:middle">●</span>' : ''}${c.prenom} ${c.nom}
                         </div>`
                     ).join('');
                 }
@@ -125,7 +129,12 @@
         async function ouvrirConversation(contactId, nom){
             document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('actif'));
             const item = document.getElementById(`contact-${contactId}`);
-            if (item) item.classList.add('actif');
+            if (item) {
+                item.classList.add('actif');
+                // Retirer le point bleu à l'ouverture (les messages sont marqués lus par l'API getConversation)
+                item.classList.remove('non-lu');
+                item.querySelector('span[style]')?.remove();
+            }
 
             contactActif = contactId;
             document.getElementById('zone-vide').style.display    = 'none';

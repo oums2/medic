@@ -111,10 +111,11 @@
             const liste = document.getElementById('liste-gauche');
             liste.innerHTML = '';
 
-            // Charge TOUTES les notifications (lues + non lues) et les contacts
-            const [notifs, contacts] = await Promise.all([
+            // Charge toutes les notifications, les contacts et les IDs ayant des messages non lus
+            const [notifs, contacts, nonLusIds] = await Promise.all([
                 fetch(`/notifications/${utilisateur.id}/toutes`).then(r => r.json()).catch(() => []),
-                fetch(`/messages/${utilisateur.id}/contacts`).then(r => r.json()).catch(() => [])
+                fetch(`/messages/${utilisateur.id}/contacts`).then(r => r.json()).catch(() => []),
+                fetch(`/messages/${utilisateur.id}/expediteurs-non-lus`).then(r => r.json()).catch(() => [])
             ]);
 
             if (notifs.length === 0 && contacts.length === 0){
@@ -150,7 +151,8 @@
 
                 contacts.forEach(c => {
                     const el = document.createElement('div');
-                    el.className = 'item';
+                    // Point bleu si ce contact a des messages non lus
+                    el.className = nonLusIds.includes(c.id) ? 'item non-lu' : 'item';
                     el.id = `contact-item-${c.id}`;
                     el.innerHTML = `
                         <div>${c.prenom} ${c.nom}</div>
@@ -217,6 +219,10 @@
             document.getElementById('detail-meta').textContent  = '';
             document.getElementById('msg-err').textContent = '';
             document.getElementById('input-msg').value = '';
+
+            // Retirer le point bleu dès que la conversation est ouverte (les messages seront marqués lus par l'API)
+            const item = document.getElementById(`contact-item-${contact.id}`);
+            if (item) item.classList.remove('non-lu');
 
             afficherMessages();
             intervalActu = setInterval(afficherMessages, 10000);

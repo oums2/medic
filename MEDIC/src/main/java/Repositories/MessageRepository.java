@@ -17,4 +17,7 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
     List<Message> findByDestinataire(Utilisateur destinataire);
 
     long countByDestinataireAndLuFalse(Utilisateur destinataire);
+
+    @Query("SELECT DISTINCT m.expediteur.id FROM Message m WHERE m.destinataire.id = :userId AND m.lu = false")
+    List<Integer> findIdsExpediteursNonLus(@Param("userId") int userId);
 }
