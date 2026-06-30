@@ -52,7 +52,7 @@
                     const data = await response.json();
 
                     if (response.ok && data.etape === 'code_requis') {
-                        // Passer à l'étape 2
+                        
                         document.getElementById('form-connexion').style.display = 'none';
                         document.getElementById('form-code').style.display = 'block';
                         document.getElementById('code').value = '';
