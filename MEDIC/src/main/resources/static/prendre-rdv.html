@@ -99,6 +99,7 @@
         function moisPrec(){ if (mois === 0){ mois = 11; annee--; } else mois--; afficherCalendrier(); }
         function moisSuiv(){ if (mois === 11){ mois = 0; annee++; } else mois++; afficherCalendrier(); }
 
+        //convertit un format date en chaine de caractère
         function toISO(date){
             const y = date.getFullYear();
             const m = String(date.getMonth()+1).padStart(2,'0');

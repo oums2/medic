@@ -12,7 +12,7 @@ public class EmailService {
     EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
-
+    //mail qui va s'envoyer pour recevoir le code
     public void envoyerCodeOtp(String destinataire, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("noreply@medic.fr");

@@ -16,13 +16,13 @@ public class ConnexionController {
         this.connexionService = connexionService;
     }
 
-    // Étape 1 : vérifie email + mot de passe, envoie le code par mail
+    //vérifie email + mot de passe, envoie le code par mail
     @PostMapping("/connexion")
     public Map<String, String> connexion(@RequestBody Map<String, String> body) {
         return connexionService.seConnecter(body.get("email"), body.get("motDePasse"));
     }
 
-    // Étape 2 : vérifie le code OTP et retourne l'utilisateur complet
+    // vérifie le code OTP et retourne l'utilisateur complet
     @PostMapping("/connexion/verifier-code")
     public Utilisateur verifierCode(@RequestBody Map<String, String> body) {
         return connexionService.verifierCode(body.get("email"), body.get("code"));
