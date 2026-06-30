@@ -7,6 +7,8 @@
 <body>
     <h1>Accueil</h1>
     <p id="bienvenue"></p>
+
+    <!-- Navigation patient : informations personnelles, notifications+messages (avec badge), déconnexion -->
     <nav>
         <a href="/patient.html">Mes informations</a> |
         <a href="/notifications.html">Notifications & Messages <span id="badge" style="display:none;background:red;color:white;border-radius:50%;padding:1px 5px;font-size:0.75em"></span></a> |
@@ -15,6 +17,7 @@
 
     <hr>
 
+    <!-- Recherche de médecin par nom, prénom ou spécialité -->
     <h2>Rechercher un médecin</h2>
     <form id="form-recherche">
         <input type="search" id="recherche" placeholder="Nom, prénom ou spécialité...">
@@ -24,6 +27,7 @@
 
     <hr>
 
+    <!-- Liste des RDV du patient connecté (confirmés et en attente) -->
     <h2>Mes rendez-vous</h2>
     <div id="liste-rdv"></div>
     <p id="message-rdv"></p>
@@ -31,9 +35,10 @@
     <script src="/auth.js"></script>
     <script>
         const utilisateur = getUtilisateur();
-        verifierPatient(utilisateur);
+        verifierPatient(utilisateur); // Redirige vers / si non connecté ou non patient
         document.getElementById('bienvenue').textContent = `Bienvenue ${utilisateur.prenom} ${utilisateur.nom}`;
 
+        // Formate "2026-06-30" en "lundi 30 juin 2026"
         function formatDate(dateStr){
             return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR',
                 { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -44,6 +49,7 @@
             rechercher();
         });
 
+        // Recherche les médecins via l'API et affiche les résultats avec un bouton "Prendre RDV"
         async function rechercher(){
             const valeur = document.getElementById('recherche').value.trim();
             const url = valeur ? `/medecins/recherche?q=${encodeURIComponent(valeur)}` : '/medecins/recherche';
@@ -65,11 +71,13 @@
             }
         }
 
+        // Stocke le médecin sélectionné en localStorage avant de naviguer vers la prise de RDV
         function allerVersRdv(medecin){
             localStorage.setItem('medecin-selectionne', JSON.stringify(medecin));
             window.location.href = '/prendre-rdv.html';
         }
 
+        // Charge et affiche tous les RDV du patient avec leur statut (confirmé / en attente)
         async function chargerRdv(){
             const div = document.getElementById('liste-rdv');
             try {
@@ -91,6 +99,7 @@
             }
         }
 
+        // Annule un RDV et le retire de l'affichage sans recharger la page
         async function annulerRdv(rdvId, jour, heure, btn){
             btn.disabled = true;
             const msg = document.getElementById('message-rdv');
@@ -111,6 +120,7 @@
 
         chargerRdv();
 
+        // Badge combiné : notifications non lues + messages non lus, mis à jour toutes les 30 secondes
         async function rafraichirBadge(){
             try {
                 const [notifs, nonLus] = await Promise.all([
