@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>MEDIC - Accueil Médecin</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <h1>Accueil Médecin</h1>
     <p id="bienvenue"></p>
     <nav>
-        <a href="/mes-creneaux.html">Mes créneaux</a> |
-        <a href="/medecin.html">Mes informations</a> |
-        <a href="/messagerie.html">Messagerie <span id="badge-msg" style="display:none;background:red;color:white;border-radius:50%;padding:1px 5px;font-size:0.75em"></span></a> |
+        <a href="/mes-creneaux.html">Mes créneaux</a>
+        <a href="/medecin.html">Mes informations</a>
+        <a href="/messagerie.html">Messagerie <span id="badge-msg" style="display:none"></span></a>
         <a href="/" onclick="deconnexion()">Se déconnecter</a>
     </nav>
 
+    <div class="contenu">
     <hr>
 
     <h2>Rechercher un patient</h2>

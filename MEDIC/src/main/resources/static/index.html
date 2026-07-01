@@ -3,23 +3,25 @@
     <head>
         <meta charset="UTF-8">
         <title>MEDIC — Connexion</title>
+        <link rel="stylesheet" href="/style.css">
     </head>
     <body>
-        <h1>Connexion</h1>
+        <h1>MEDIC — Connexion</h1>
+        <div class="page-form">
 
         <!--  saisie email + mot de passe -->
-        <form id="form-connexion">
-            <label>Email :</label><br>
+        <form id="form-connexion" class="form-card">
+            <label>Email :</label>
             <input type="email" id="email" required><br><br>
 
-            <label>Mot de passe :</label><br>
+            <label>Mot de passe :</label>
             <input type="password" id="motDePasse" required><br><br>
 
             <button type="submit">Se connecter</button>
         </form>
 
         <!--  saisie du code reçu par mail (masqué au départ) -->
-        <form id="form-code" style="display:none">
+        <form id="form-code" class="form-card" style="display:none">
             <p>Un code à 6 chiffres a été envoyé à votre adresse email.</p>
             <label>Code de vérification :</label><br>
             <input type="text" id="code" maxlength="6" placeholder="000000" required><br><br>
@@ -105,5 +107,6 @@
                 emailEnCours = '';
             }
         </script>
+        </div>
     </body>
 </html>

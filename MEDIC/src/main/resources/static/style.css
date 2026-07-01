@@ -1,0 +1,383 @@
+/*  Variables  */
+:root {
+    --bleu:        #1565c0;
+    --bleu-hover:  #0d47a1;
+    --bleu-clair:  #e3f2fd;
+    --bg:          #f4f6f9;
+    --blanc:       #ffffff;
+    --texte:       #212529;
+    --gris:        #6c757d;
+    --bordure:     #dee2e6;
+    --rouge:       #c62828;
+    --rouge-clair: #ffebee;
+    --vert:        #2e7d32;
+    --ombre:       0 2px 8px rgba(0,0,0,0.08);
+    --rayon:       8px;
+}
+
+/* Reset */
+*, *::before, *::after { 
+    box-sizing: border-box; 
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--texte);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* En-tête (h1) */
+h1 {
+    background: var(--bleu);
+    color: #fff;
+    margin: 0;
+    padding: 16px 32px;
+    font-size: 1.3em;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/*  Message de bienvenue  */
+#bienvenue {
+    margin: 0;
+    padding: 8px 32px;
+    background: var(--bleu-clair);
+    color: var(--bleu);
+    font-size: 0.88em;
+    border-bottom: 1px solid #bbdefb;
+}
+
+/* Navigation */
+nav {
+    background: var(--blanc);
+    border-bottom: 1px solid var(--bordure);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    font-size: 0; /* masque les séparateurs | entre les liens */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+nav a {
+    font-size: 14px;
+    color: var(--texte);
+    text-decoration: none;
+    padding: 13px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-bottom: 3px solid transparent;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    white-space: nowrap;
+}
+
+nav a:hover {
+    color: var(--bleu);
+    background: var(--bleu-clair);
+    border-bottom-color: var(--bleu);
+    text-decoration: none;
+}
+
+nav a:last-child {
+    margin-left: auto;
+    color: var(--gris);
+}
+
+nav a:last-child:hover {
+    color: var(--rouge);
+    background: var(--rouge-clair);
+    border-bottom-color: var(--rouge);
+}
+
+/* Badge */
+#badge, #badge-msg {
+    background: #e53935;
+    color: #fff;
+    border-radius: 50%;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    font-size: 11px;
+    font-weight: bold;
+    vertical-align: middle;
+    line-height: 18px;
+    text-align: center;
+}
+
+/* Séparateur */
+hr {
+    border: none;
+    border-top: 1px solid var(--bordure);
+    margin: 24px 0;
+}
+
+/*  Contenu centré  */
+.contenu {
+    max-width: 880px;
+    margin: 28px auto;
+    padding: 0 28px;
+}
+
+/* Titres */
+h2 {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--bleu);
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--bleu-clair);
+}
+
+h3 {
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--texte);
+    margin: 16px 0 8px;
+}
+
+/*  Formulaires */
+form { 
+    margin: 0; 
+}
+
+/* Formulaire */
+.form-card {
+    background: var(--blanc);
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+    padding: 20px 24px;
+    max-width: 440px;
+    box-shadow: var(--ombre);
+}
+
+/* Supprime les <br><br> dans les formulaires */
+.form-card br { 
+    display: none;
+}
+
+/* Conteneur centré pour les pages connexion / inscription */
+.page-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px;
+}
+
+.page-form > p {
+    font-size: 0.88em;
+    color: var(--gris);
+    margin-top: 10px;
+}
+
+/* Labels */
+label {
+    display: block;
+    font-weight: 500;
+    font-size: 0.88em;
+    color: var(--gris);
+    margin: 10px 0 3px;
+}
+
+/* Champs de saisie */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--bordure);
+    border-radius: 6px;
+    font-size: 0.95em;
+    font-family: inherit;
+    color: var(--texte);
+    background: #fafafa;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    display: block;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--bleu);
+    background: var(--blanc);
+    box-shadow: 0 0 0 3px rgba(21,101,192,0.12);
+}
+
+input[type="search"] {
+    width: 260px;
+    display: inline-block;
+}
+
+input[type="date"],
+input[type="time"] {
+    width: auto;
+    display: inline-block;
+}
+
+/* Boutons */
+button {
+    padding: 9px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    vertical-align: middle;
+}
+
+
+button[type="submit"] {
+    background: var(--bleu);
+    color: #fff;
+}
+
+button[type="submit"]:hover { 
+    background: var(--bleu-hover); 
+}
+
+button[type="button"] {
+    background: var(--blanc);
+    color: var(--bleu);
+    border: 1px solid var(--bleu);
+}
+
+button[type="button"]:hover { 
+    background: var(--bleu-clair); 
+}
+
+button:not([type]) {
+    background: var(--bleu);
+    color: #fff;
+}
+button:not([type]):hover { background: var(--bleu-hover); }
+
+button[onclick*="annuler"],
+button[onclick*="refuser"],
+button[onclick*="supprimer"],
+#btn-supprimer {
+    background: var(--blanc) !important;
+    color: var(--rouge) !important;
+    border: 1px solid var(--rouge) !important;
+}
+
+button[onclick*="annuler"]:hover,
+button[onclick*="refuser"]:hover,
+button[onclick*="supprimer"]:hover,
+#btn-supprimer:hover {
+    background: var(--rouge-clair) !important;
+}
+
+button:active  { 
+    transform: scale(0.97); 
+}
+button:disabled { 
+    opacity: 0.5; cursor: not-allowed; transform: none; 
+}
+
+/* Listes */
+ul { 
+    list-style: none; padding: 0; margin: 0; 
+}
+
+li {
+    background: var(--blanc);
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+    padding: 13px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    transition: box-shadow 0.15s;
+}
+
+li:hover { 
+    box-shadow: var(--ombre); 
+}
+
+li button {
+    padding: 6px 14px;
+    font-size: 0.85em;
+    margin-top: 0;
+    margin-left: auto;
+}
+
+li button + button { 
+    margin-left: 6px; 
+}
+
+/* Messages feedback  */
+#message,
+p[id^="message"] {
+    min-height: 1.2em;
+    font-size: 0.88em;
+    margin: 8px 0;
+    color: var(--vert);
+}
+
+/*  Informations utilisateur */
+.fiche-info {
+    background: var(--blanc);
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon);
+    padding: 20px 24px;
+    max-width: 440px;
+    box-shadow: var(--ombre);
+    margin-bottom: 20px;
+}
+
+.fiche-info p {
+    margin: 8px 0;
+    font-size: 0.95em;
+    color: var(--gris);
+}
+
+.fiche-info span {
+    font-weight: 500;
+    color: var(--texte);
+}
+
+/*  Section de résultats */
+#resultats > p:first-child {
+    font-size: 0.85em;
+    color: var(--gris);
+    margin: 4px 0 10px;
+}
+
+/* Liens */
+a { 
+    color: var(--bleu); text-decoration: none; 
+}
+a:hover { 
+    text-decoration: underline; 
+}
+
+p > a { 
+    font-size: 0.9em; 
+}
+
+/*  S'adapte en fonction de la largeur de l'écran */
+@media (max-width: 620px) {
+    h1 { padding: 14px 18px; font-size: 1.1em; }
+    nav a { padding: 10px 12px; font-size: 13px; }
+    .contenu { padding: 0 14px; margin: 16px auto; }
+    .form-card { padding: 20px 18px; }
+    .page-form { padding: 24px 14px; }
+    li { flex-direction: column; align-items: flex-start; }
+    li button { margin-left: 0; }
+    input[type="search"] { width: 100%; }
+}

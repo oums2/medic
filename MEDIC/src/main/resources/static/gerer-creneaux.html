@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>MEDIC — Gérer les créneaux</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <h1>Gérer les créneaux</h1>
-
+    <div class="contenu">
     <label>Médecin :</label>
     <select id="select-medecin" onchange="chargerCreneaux()">
         <option value="">-- Sélectionner un médecin --</option>
@@ -133,5 +134,6 @@
 
         chargerMedecins();
     </script>
+    </div>
 </body>
 </html>

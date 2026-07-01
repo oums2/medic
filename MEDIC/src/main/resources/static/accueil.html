@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>MEDIC - Accueil</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <h1>Accueil</h1>
@@ -10,11 +11,12 @@
 
     <!-- Navigation patient : informations personnelles, notifications+messages (avec badge), déconnexion -->
     <nav>
-        <a href="/patient.html">Mes informations</a> |
-        <a href="/notifications.html">Notifications & Messages <span id="badge" style="display:none;background:red;color:white;border-radius:50%;padding:1px 5px;font-size:0.75em"></span></a> |
+        <a href="/patient.html">Mes informations</a>
+        <a href="/notifications.html">Notifications &amp; Messages <span id="badge" style="display:none"></span></a>
         <a href="/" onclick="deconnexion()">Se déconnecter</a>
     </nav>
 
+    <div class="contenu">
     <hr>
 
     <!-- Recherche de médecin par nom, prénom ou spécialité -->
@@ -139,5 +141,6 @@
         rafraichirBadge();
         setInterval(rafraichirBadge, 30000);
     </script>
+    </div>
 </body>
 </html>

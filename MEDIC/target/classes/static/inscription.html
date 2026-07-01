@@ -3,34 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>MEDIC — Inscription Patient</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <h1>Inscription Patient</h1>
+    <h1>MEDIC — Inscription Patient</h1>
+    <div class="page-form">
+    <form id="form-patient" class="form-card">
 
-    <form id="form-patient">
-
-        <label>Nom :</label><br>
+        <label>Nom :</label>
         <input type="text" id="p-nom" required><br><br>
 
-        <label>Prénom :</label><br>
+        <label>Prénom :</label>
         <input type="text" id="p-prenom" required><br><br>
 
-        <label>Email :</label><br>
+        <label>Email :</label>
         <input type="email" id="p-email" required><br><br>
 
-        <label>Confirmer l'email :</label><br>
+        <label>Confirmer l'email :</label>
         <input type="email" id="p-email-confirm" required><br><br>
 
-        <label>Mot de passe :</label><br>
+        <label>Mot de passe :</label>
         <input type="password" id="p-motDePasse" required><br><br>
 
-        <label>Confirmer le mot de passe :</label><br>
+        <label>Confirmer le mot de passe :</label>
         <input type="password" id="p-motDePasse-confirm" required><br><br>
 
-        <label>Adresse :</label><br>
+        <label>Adresse :</label>
         <input type="text" id="p-adresse"><br><br>
 
-        <label>Numéro de téléphone :</label><br>
+        <label>Numéro de téléphone :</label>
         <input type="text" id="p-numero"><br><br>
 
         <button type="submit">S'inscrire</button>
@@ -40,6 +41,7 @@
 
     <p><a href="/">Déjà inscrit ? Se connecter</a></p>
     <p>Vous êtes médecin ? <a href="/inscription-medecin.html">Inscription médecin</a></p>
+    </div>
 
     <script>
         document.getElementById('form-patient').addEventListener('submit', async function(e) {
@@ -87,5 +89,6 @@
             }
         });
     </script>
+    </div>
 </body>
 </html>
